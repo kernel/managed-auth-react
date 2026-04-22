@@ -1,0 +1,53 @@
+{
+  "name": "@onkernel/managed-auth-react",
+  "version": "0.1.0-alpha.0",
+  "description": "React component library for Kernel managed auth — one-component drop-in with a Clerk-style appearance API",
+  "license": "MIT",
+  "author": "Kernel Technologies, Inc.",
+  "homepage": "https://onkernel.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kernel/managed-auth-react.git",
+    "directory": "packages/managed-auth-react"
+  },
+  "bugs": {
+    "url": "https://github.com/kernel/managed-auth-react/issues"
+  },
+  "keywords": ["kernel", "auth", "react", "managed-auth", "authentication"],
+  "type": "module",
+  "sideEffects": ["**/*.css"],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0"
+  }
+}

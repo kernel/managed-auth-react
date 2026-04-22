@@ -20,6 +20,9 @@ export interface Localization {
   discoveringMessage?: string;
   waitingForFormMessage?: string;
   submittingMessage?: string;
+  loadingDiscoverySteps?: string[];
+  loadingAuthSteps?: string[];
+  loadingTimeHint?: string;
   /** Unified auth form. */
   loginTitle?: (siteName: string) => string;
   ssoLoginTitle?: (provider: string) => string;
@@ -40,15 +43,21 @@ export interface Localization {
   /** Success step. */
   successTitle?: string;
   successDescription?: (siteName: string) => string;
+  successCloseHint?: string;
   /** Error step. */
   errorTitle?: string;
   errorGenericMessage?: string;
   errorCodeLabel?: string;
+  errorShowDetails?: string;
+  errorHideDetails?: string;
+  errorCloseHint?: string;
   /** Expired step. */
   expiredTitle?: string;
   expiredDescription?: string;
   /** External action. */
+  externalActionTitle?: string;
   externalActionFallbackMessage?: string;
+  externalActionWaiting?: string;
 }
 
 export type Localizer = Required<Localization>;

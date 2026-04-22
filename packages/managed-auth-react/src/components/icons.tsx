@@ -69,6 +69,41 @@ export const ChevronRightIcon = (p: IconProps) => (
   </Icon>
 );
 
+export const ChevronDownIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <polyline points="6 9 12 15 18 9" />
+  </Icon>
+);
+
+export const ChevronUpIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <polyline points="18 15 12 9 6 15" />
+  </Icon>
+);
+
+export const GlobeIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    <line x1="2" y1="12" x2="22" y2="12" />
+  </Icon>
+);
+
+export const SearchIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </Icon>
+);
+
+export const BrainIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z" />
+    <path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z" />
+    <path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4" />
+  </Icon>
+);
+
 export const SmartphoneIcon = (p: IconProps) => (
   <Icon {...p}>
     <rect x="5" y="2" width="14" height="20" rx="2" />

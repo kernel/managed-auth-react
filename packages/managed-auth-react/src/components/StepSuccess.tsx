@@ -32,6 +32,8 @@ export function StepSuccess({ targetDomain }: StepSuccessProps) {
           {l.successDescription(siteName)}
         </p>
       </div>
+
+      <p className="kma-loading-hint">{l.successCloseHint}</p>
     </div>
   );
 }

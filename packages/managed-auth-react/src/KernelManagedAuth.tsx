@@ -101,11 +101,11 @@ function KernelManagedAuthInner({
   }
 
   if (uiState === "discovering") {
-    return <LoadingState message={l.discoveringMessage} />;
+    return <LoadingState message={l.discoveringMessage} variant="discovering" />;
   }
 
   if (uiState === "submitting") {
-    return <LoadingState message={l.submittingMessage} />;
+    return <LoadingState message={l.submittingMessage} variant="authenticating" />;
   }
 
   if (uiState === "awaiting_external_action") {

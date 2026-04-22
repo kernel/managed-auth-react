@@ -9,34 +9,36 @@
  */
 
 .kma-root {
-  /* Colors — light */
-  --kma-color-background: #ffffff;
-  --kma-color-foreground: #0f172a;
-  --kma-color-muted: #f1f5f9;
-  --kma-color-muted-foreground: #64748b;
-  --kma-color-card: #ffffff;
-  --kma-color-card-foreground: #0f172a;
-  --kma-color-border: #e2e8f0;
-  --kma-color-input: #ffffff;
-  --kma-color-input-foreground: #0f172a;
-  --kma-color-ring: #7c3aed;
-  --kma-color-primary: #7c3aed;
+  /* ---- shadcn-style tokens, light theme (oklch) ---- */
+  --kma-color-background: oklch(1 0 0);
+  --kma-color-foreground: oklch(0.145 0 0);
+  --kma-color-card: oklch(1 0 0);
+  --kma-color-card-foreground: oklch(0.145 0 0);
+  --kma-color-muted: oklch(0.97 0 0);
+  --kma-color-muted-foreground: oklch(0.556 0 0);
+  --kma-color-border: oklch(0.922 0 0);
+  --kma-color-input: transparent;
+  --kma-color-input-foreground: oklch(0.145 0 0);
+  --kma-color-ring: oklch(0.708 0 0);
+
+  /* Purple-600 brand accent, matching the hosted-ui */
+  --kma-color-primary: oklch(0.558 0.288 302.321);
   --kma-color-primary-foreground: #ffffff;
-  --kma-color-danger: #dc2626;
+
+  --kma-color-danger: oklch(0.577 0.245 27.325);
   --kma-color-danger-foreground: #ffffff;
-  --kma-color-success: #16a34a;
+  --kma-color-success: oklch(0.627 0.194 149.214);
   --kma-color-success-foreground: #ffffff;
-  --kma-color-warning: #d97706;
-  --kma-color-warning-foreground: #ffffff;
+  --kma-color-warning: oklch(0.828 0.189 84.429);
+  --kma-color-warning-foreground: oklch(0.145 0 0);
 
-  /* Radii */
-  --kma-radius: 8px;
-  --kma-radius-sm: 6px;
-  --kma-radius-lg: 16px;
+  /* shadcn --radius: 0.625rem; lg == radius, md = r-2px, sm = r-4px */
+  --kma-radius: 0.625rem;
+  --kma-radius-sm: 0.375rem;
+  --kma-radius-lg: 0.625rem;
 
-  /* Type */
-  --kma-font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --kma-font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --kma-font-size: 14px;
   --kma-font-size-sm: 12px;
   --kma-font-size-lg: 16px;
@@ -44,9 +46,10 @@
   --kma-font-weight-medium: 500;
   --kma-font-weight-semibold: 600;
 
-  /* Layout */
   --kma-spacing-unit: 4px;
-  --kma-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+  --kma-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --kma-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --kma-transition-duration: 150ms;
 
   font-family: var(--kma-font-family);
@@ -54,10 +57,15 @@
   color: var(--kma-color-foreground);
   background: var(--kma-color-background);
   line-height: 1.5;
-  min-height: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   box-sizing: border-box;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
 }
 
 .kma-root *,
@@ -66,53 +74,52 @@
   box-sizing: border-box;
 }
 
-/* Dark theme */
+/* Dark theme — explicit */
 .kma-root.kma-theme-dark {
-  --kma-color-background: #020617;
-  --kma-color-foreground: #f8fafc;
-  --kma-color-muted: #1e293b;
-  --kma-color-muted-foreground: #94a3b8;
-  --kma-color-card: #0f172a;
-  --kma-color-card-foreground: #f8fafc;
-  --kma-color-border: #1e293b;
-  --kma-color-input: #0f172a;
-  --kma-color-input-foreground: #f8fafc;
-  --kma-color-ring: #a78bfa;
-  --kma-color-primary: #a78bfa;
-  --kma-color-primary-foreground: #0f0f12;
+  --kma-color-background: oklch(0.145 0 0);
+  --kma-color-foreground: oklch(0.985 0 0);
+  --kma-color-card: oklch(0.205 0 0);
+  --kma-color-card-foreground: oklch(0.985 0 0);
+  --kma-color-muted: oklch(0.269 0 0);
+  --kma-color-muted-foreground: oklch(0.708 0 0);
+  --kma-color-border: oklch(1 0 0 / 10%);
+  --kma-color-input: oklch(1 0 0 / 6%);
+  --kma-color-input-foreground: oklch(0.985 0 0);
+  --kma-color-ring: oklch(0.556 0 0);
+
+  /* Purple-700 in dark mode */
+  --kma-color-primary: oklch(0.496 0.265 301.924);
+  --kma-color-primary-foreground: #ffffff;
+
+  --kma-color-danger: oklch(0.704 0.191 22.216);
+  --kma-color-success: oklch(0.765 0.177 163.223);
 }
 
-/* Auto: respect prefers-color-scheme when theme="auto" (or unset) */
+/* Auto — inherit from prefers-color-scheme */
 @media (prefers-color-scheme: dark) {
   .kma-root.kma-theme-auto {
-    --kma-color-background: #020617;
-    --kma-color-foreground: #f8fafc;
-    --kma-color-muted: #1e293b;
-    --kma-color-muted-foreground: #94a3b8;
-    --kma-color-card: #0f172a;
-    --kma-color-card-foreground: #f8fafc;
-    --kma-color-border: #1e293b;
-    --kma-color-input: #0f172a;
-    --kma-color-input-foreground: #f8fafc;
-    --kma-color-ring: #a78bfa;
-    --kma-color-primary: #a78bfa;
-    --kma-color-primary-foreground: #0f0f12;
+    --kma-color-background: oklch(0.145 0 0);
+    --kma-color-foreground: oklch(0.985 0 0);
+    --kma-color-card: oklch(0.205 0 0);
+    --kma-color-card-foreground: oklch(0.985 0 0);
+    --kma-color-muted: oklch(0.269 0 0);
+    --kma-color-muted-foreground: oklch(0.708 0 0);
+    --kma-color-border: oklch(1 0 0 / 10%);
+    --kma-color-input: oklch(1 0 0 / 6%);
+    --kma-color-input-foreground: oklch(0.985 0 0);
+    --kma-color-ring: oklch(0.556 0 0);
+    --kma-color-primary: oklch(0.496 0.265 301.924);
+    --kma-color-primary-foreground: #ffffff;
+    --kma-color-danger: oklch(0.704 0.191 22.216);
+    --kma-color-success: oklch(0.765 0.177 163.223);
   }
 }
 
 /* ---------- Shell ---------- */
 
-.kma-root {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-}
-
 .kma-shell {
   width: 100%;
-  max-width: 420px;
+  max-width: 28rem;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -124,22 +131,22 @@
   border: 1px solid var(--kma-color-border);
   border-radius: var(--kma-radius-lg);
   box-shadow: var(--kma-shadow);
-  padding: 32px;
+  padding: 2rem;
 }
 
 .kma-powered-by {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   font-size: var(--kma-font-size-sm);
   color: var(--kma-color-muted-foreground);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
 }
 
 .kma-powered-by__link {
   color: inherit;
-  text-decoration: underline;
+  text-decoration: none;
+  font-weight: var(--kma-font-weight-medium);
   transition: color var(--kma-transition-duration);
 }
 
@@ -147,7 +154,7 @@
   color: var(--kma-color-foreground);
 }
 
-/* ---------- Step layout ---------- */
+/* ---------- Step ---------- */
 
 .kma-step {
   display: flex;
@@ -157,7 +164,7 @@
 
 .kma-step--center {
   text-align: center;
-  align-items: stretch;
+  padding: 1rem 0;
 }
 
 .kma-step__icon-wrap {
@@ -178,6 +185,7 @@
   font-weight: var(--kma-font-weight-semibold);
   color: var(--kma-color-foreground);
   letter-spacing: -0.01em;
+  line-height: 1.25;
 }
 
 .kma-title__sso {
@@ -191,16 +199,19 @@
   margin: 0;
   font-size: var(--kma-font-size);
   color: var(--kma-color-muted-foreground);
+  max-width: 22rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* ---------- Site icon ---------- */
 
 .kma-site-icon {
-  width: 72px;
-  height: 72px;
-  border-radius: var(--kma-radius-lg);
+  width: 5rem;
+  height: 5rem;
+  border-radius: 1rem;
   background: var(--kma-color-card);
-  border: 1px solid var(--kma-color-border);
+  border: 2px solid var(--kma-color-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -209,8 +220,8 @@
 }
 
 .kma-site-icon__img {
-  width: 44px;
-  height: 44px;
+  width: 3rem;
+  height: 3rem;
   object-fit: contain;
 }
 
@@ -229,7 +240,7 @@
   filter: grayscale(1);
 }
 
-/* ---------- Icon w/ badge overlay (success/error) ---------- */
+/* ---------- Icon with badge (success / error overlays) ---------- */
 
 .kma-icon-with-badge {
   position: relative;
@@ -240,19 +251,19 @@
   position: absolute;
   bottom: -4px;
   right: -4px;
-  width: 28px;
-  height: 28px;
+  width: 2rem;
+  height: 2rem;
   border-radius: 9999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--kma-color-card);
+  border: 2px solid var(--kma-color-background);
   color: #fff;
 }
 
 .kma-icon-badge svg {
-  width: 16px;
-  height: 16px;
+  width: 1.125rem;
+  height: 1.125rem;
 }
 
 .kma-icon-badge--success {
@@ -263,33 +274,7 @@
   background: var(--kma-color-danger);
 }
 
-/* ---------- Circle icon (external action / expired) ---------- */
-
-.kma-circle-icon {
-  width: 72px;
-  height: 72px;
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.kma-circle-icon svg {
-  width: 32px;
-  height: 32px;
-}
-
-.kma-circle-icon--primary {
-  background: color-mix(in srgb, var(--kma-color-primary) 12%, transparent);
-  color: var(--kma-color-primary);
-}
-
-.kma-circle-icon--muted {
-  background: var(--kma-color-muted);
-  color: var(--kma-color-muted-foreground);
-}
-
-/* ---------- Security card (prime step) ---------- */
+/* ---------- Security card (prime) ---------- */
 
 .kma-security-card {
   background: var(--kma-color-muted);
@@ -304,12 +289,12 @@
 .kma-security-row {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
 }
 
 .kma-security-icon {
-  width: 16px;
-  height: 16px;
+  width: 1rem;
+  height: 1rem;
   flex-shrink: 0;
   margin-top: 2px;
   color: var(--kma-color-success);
@@ -319,6 +304,7 @@
   margin: 0;
   font-size: var(--kma-font-size);
   color: var(--kma-color-foreground);
+  text-align: left;
 }
 
 /* ---------- Buttons ---------- */
@@ -329,8 +315,8 @@
   cursor: pointer;
   font: inherit;
   font-weight: var(--kma-font-weight-medium);
-  border-radius: var(--kma-radius);
-  transition: background var(--kma-transition-duration),
+  border-radius: var(--kma-radius-sm);
+  transition: background-color var(--kma-transition-duration),
     color var(--kma-transition-duration),
     border-color var(--kma-transition-duration),
     opacity var(--kma-transition-duration),
@@ -339,19 +325,22 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 0 16px;
-  min-height: 44px;
+  padding: 0 1rem;
+  height: 3rem;
   line-height: 1.2;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .kma-button:focus-visible {
-  outline: 2px solid var(--kma-color-ring);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--kma-color-ring) 50%, transparent);
 }
 
 .kma-button:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
 .kma-button--full {
@@ -361,9 +350,10 @@
 .kma-button--primary {
   background: var(--kma-color-primary);
   color: var(--kma-color-primary-foreground);
+  font-size: var(--kma-font-size-lg);
 }
 
-.kma-button--primary:hover:not(:disabled) {
+.kma-button--primary:hover {
   background: color-mix(in srgb, var(--kma-color-primary) 88%, black);
 }
 
@@ -371,26 +361,29 @@
   background: var(--kma-color-card);
   color: var(--kma-color-card-foreground);
   border: 1px solid var(--kma-color-border);
+  box-shadow: var(--kma-shadow-xs);
 }
 
-.kma-button--secondary:hover:not(:disabled) {
+.kma-button--secondary:hover {
   background: var(--kma-color-muted);
 }
 
-/* ---------- Option buttons (MFA, sign-in, SSO) ---------- */
+/* ---------- Option buttons ---------- */
 
 .kma-options {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .kma-option {
   width: 100%;
-  padding: 14px 16px;
-  min-height: 0;
+  height: auto;
+  padding: 1rem;
+  min-height: 3.5rem;
   text-align: left;
   justify-content: flex-start;
+  gap: 16px;
 }
 
 .kma-option__icon {
@@ -399,11 +392,12 @@
   justify-content: center;
   color: var(--kma-color-muted-foreground);
   flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .kma-option__icon svg {
-  width: 20px;
-  height: 20px;
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .kma-option__text {
@@ -438,16 +432,17 @@
 }
 
 .kma-option__chevron svg {
-  width: 16px;
-  height: 16px;
+  width: 1rem;
+  height: 1rem;
 }
 
 /* ---------- SSO buttons ---------- */
 
 .kma-sso-button {
   width: 100%;
-  min-height: 44px;
-  font-weight: var(--kma-font-weight-medium);
+  height: 2.75rem;
+  font-size: var(--kma-font-size-lg);
+  gap: 12px;
 }
 
 .kma-sso-button__icon {
@@ -457,8 +452,8 @@
 }
 
 .kma-sso-icon {
-  width: 20px;
-  height: 20px;
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 /* ---------- Form / Input ---------- */
@@ -472,7 +467,7 @@
 .kma-form-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .kma-label {
@@ -496,10 +491,11 @@
   background: var(--kma-color-input);
   color: var(--kma-color-input-foreground);
   border: 1px solid var(--kma-color-border);
-  border-radius: var(--kma-radius);
+  border-radius: var(--kma-radius-sm);
   font: inherit;
   font-size: var(--kma-font-size);
   line-height: 1.4;
+  box-shadow: var(--kma-shadow-xs);
   transition: border-color var(--kma-transition-duration),
     box-shadow var(--kma-transition-duration);
 }
@@ -507,7 +503,8 @@
 .kma-input:focus {
   outline: none;
   border-color: var(--kma-color-ring);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--kma-color-ring) 22%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--kma-color-ring) 50%, transparent);
 }
 
 .kma-input::placeholder {
@@ -515,7 +512,7 @@
 }
 
 .kma-input--with-toggle {
-  padding-right: 40px;
+  padding-right: 2.5rem;
 }
 
 .kma-input-hint {
@@ -546,8 +543,8 @@
 }
 
 .kma-password-toggle svg {
-  width: 18px;
-  height: 18px;
+  width: 1rem;
+  height: 1rem;
 }
 
 /* ---------- Divider ---------- */
@@ -558,6 +555,7 @@
   align-items: center;
   justify-content: center;
   margin: 16px 0;
+  height: 1.25rem;
 }
 
 .kma-divider__line {
@@ -592,9 +590,10 @@
 /* ---------- Error banner ---------- */
 
 .kma-error-banner {
-  background: color-mix(in srgb, var(--kma-color-danger) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--kma-color-danger) 30%, transparent);
-  border-radius: var(--kma-radius);
+  background: color-mix(in srgb, var(--kma-color-danger) 8%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--kma-color-danger) 25%, transparent);
+  border-radius: var(--kma-radius-sm);
   padding: 12px 14px;
 }
 
@@ -608,6 +607,7 @@
   margin: 0;
   font-size: var(--kma-font-size-sm);
   color: var(--kma-color-muted-foreground);
+  text-align: center;
 }
 
 .kma-error-code code {
@@ -616,6 +616,55 @@
   padding: 1px 6px;
   border-radius: var(--kma-radius-sm);
   font-size: 0.95em;
+}
+
+.kma-error-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.kma-error-details__toggle {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0 auto;
+  font: inherit;
+  font-size: var(--kma-font-size-sm);
+  color: var(--kma-color-muted-foreground);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color var(--kma-transition-duration);
+}
+
+.kma-error-details__toggle:hover {
+  color: var(--kma-color-foreground);
+}
+
+.kma-error-details__toggle svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.kma-error-details__panel {
+  border: 1px solid var(--kma-color-border);
+  background: color-mix(in srgb, var(--kma-color-muted) 60%, transparent);
+  border-radius: var(--kma-radius-sm);
+  padding: 12px 16px;
+}
+
+.kma-error-details__text {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: var(--kma-font-size-sm);
+  color: var(--kma-color-muted-foreground);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
 }
 
 /* ---------- Legal ---------- */
@@ -640,7 +689,14 @@
 /* ---------- Loading ---------- */
 
 .kma-loading {
-  padding: 16px 0;
+  padding: 2rem 0;
+  gap: 2rem;
+}
+
+.kma-loading__spinner-wrap {
+  position: relative;
+  width: 4rem;
+  height: 4rem;
 }
 
 .kma-spinner {
@@ -650,20 +706,200 @@
 }
 
 .kma-spinner svg {
-  width: 40px;
-  height: 40px;
+  width: 100%;
+  height: 100%;
 }
 
-.kma-loading-text {
+.kma-spinner--lg {
+  display: block;
+  width: 4rem;
+  height: 4rem;
+}
+
+.kma-loading__inner-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--kma-color-primary);
+  animation: kma-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.kma-loading__inner-icon svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.kma-loading-title {
   margin: 0;
-  font-size: var(--kma-font-size);
-  font-weight: var(--kma-font-weight-medium);
+  font-size: 1.25rem;
+  font-weight: var(--kma-font-weight-semibold);
   color: var(--kma-color-foreground);
   text-align: center;
 }
 
+.kma-loading-step {
+  margin: 0;
+  font-size: var(--kma-font-size);
+  color: var(--kma-color-muted-foreground);
+  text-align: center;
+  animation: kma-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.kma-loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.kma-loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--kma-color-muted);
+  transition: all var(--kma-transition-duration) ease;
+}
+
+.kma-loading-dot--active {
+  width: 2rem;
+  background: var(--kma-color-primary);
+}
+
+.kma-loading-hint {
+  margin: 0;
+  font-size: var(--kma-font-size-sm);
+  color: var(--kma-color-muted-foreground);
+  text-align: center;
+}
+
+/* ---------- External action waiting ---------- */
+
+.kma-external-action {
+  padding: 2rem 0;
+  gap: 2rem;
+}
+
+.kma-external-action__cluster {
+  position: relative;
+  display: inline-block;
+}
+
+.kma-external-action__primary {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--kma-color-primary) 15%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--kma-color-primary);
+}
+
+.kma-external-action__primary-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  animation: kma-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.kma-external-action__badge {
+  position: absolute;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kma-external-action__badge svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.kma-external-action__badge--key {
+  top: -4px;
+  right: -4px;
+  background: color-mix(in srgb, #f59e0b 20%, transparent);
+  color: #d97706;
+}
+
+.kma-external-action__badge--fp {
+  bottom: -4px;
+  left: -4px;
+  background: color-mix(in srgb, #3b82f6 20%, transparent);
+  color: #2563eb;
+}
+
+.kma-bouncing-dots {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.kma-bouncing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--kma-color-primary);
+  animation: kma-bounce 1s infinite;
+}
+
+/* ---------- Keyframes ---------- */
+
 @keyframes kma-spin {
+  from {
+    transform: rotate(0deg);
+  }
   to {
     transform: rotate(360deg);
   }
+}
+
+@keyframes kma-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes kma-bounce {
+  0%,
+  100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+/* ---------- Expired (circle icon) ---------- */
+
+.kma-circle-icon {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kma-circle-icon svg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.kma-circle-icon--primary {
+  background: color-mix(in srgb, var(--kma-color-primary) 15%, transparent);
+  color: var(--kma-color-primary);
+}
+
+.kma-circle-icon--muted {
+  background: var(--kma-color-muted);
+  color: var(--kma-color-muted-foreground);
 }

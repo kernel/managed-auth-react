@@ -31,7 +31,7 @@ export function ExternalActionWaiting({ message }: ExternalActionWaitingProps) {
       </div>
 
       <div className="kma-step__header">
-        <h2 className="kma-title">{l.externalActionTitle}</h2>
+        <h2 className="kma-loading-title">{l.externalActionTitle}</h2>
         <p {...slot("externalActionMessage", "kma-subtitle")}>
           {message || l.externalActionFallbackMessage}
         </p>

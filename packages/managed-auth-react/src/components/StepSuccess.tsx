@@ -14,7 +14,7 @@ export function StepSuccess({ targetDomain }: StepSuccessProps) {
   const siteName = extractDomainName(targetDomain);
 
   return (
-    <div className="kma-step kma-step--center">
+    <div className="kma-step kma-step--terminal kma-step--center">
       <div className="kma-step__icon-wrap">
         <div className="kma-icon-with-badge">
           <SiteIcon siteName={siteName} />

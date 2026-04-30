@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { useSlot } from "../appearance/context";
 import { variablesToStyle } from "../appearance/variables";
 import type { Appearance, ColorScheme } from "../appearance/types";
+import { KernelLogo } from "./KernelLogo";
 
 interface ShellProps {
   appearance?: Appearance;
@@ -42,8 +43,9 @@ export function Shell({ appearance, children }: ShellProps) {
               href="https://kernel.sh"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Kernel"
             >
-              Kernel
+              <KernelLogo />
             </a>
           </div>
         )}

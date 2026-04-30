@@ -33,7 +33,9 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "link:hosted-ui": "LINK_TO=../../../managed-auth-hosted-ui/node_modules/@onkernel/managed-auth-react bun run build",
+    "dev:hosted-ui": "LINK_TO=../../../managed-auth-hosted-ui/node_modules/@onkernel/managed-auth-react tsup --watch"
   },
   "peerDependencies": {
     "react": ">=18",

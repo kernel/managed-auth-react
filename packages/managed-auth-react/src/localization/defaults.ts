@@ -48,6 +48,7 @@ export const DEFAULT_LOCALIZATION: Localizer = {
     push: "Push notification",
     password: "Password",
     passkey: "Passkey",
+    switch: "Use another method",
     other: "Other",
   },
   successTitle: "Successfully signed in",

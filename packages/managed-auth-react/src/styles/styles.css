@@ -24,10 +24,15 @@
   /* Purple-600 brand accent, matching the hosted-ui */
   --kma-color-primary: oklch(0.558 0.288 302.321);
   --kma-color-primary-foreground: #ffffff;
+  /* Brighter purple used for pulsing/animated foreground icons so the
+     peak of the pulse actually pops. Defaults to ~purple-500. */
+  --kma-color-primary-bright: oklch(0.65 0.265 303);
 
   --kma-color-danger: oklch(0.577 0.245 27.325);
   --kma-color-danger-foreground: #ffffff;
-  --kma-color-success: oklch(0.627 0.194 149.214);
+  /* Tailwind green-500 — matches the success badge in the previous
+     hosted-ui (`bg-green-500`). */
+  --kma-color-success: oklch(0.723 0.219 149.579);
   --kma-color-success-foreground: #ffffff;
   --kma-color-warning: oklch(0.828 0.189 84.429);
   --kma-color-warning-foreground: oklch(0.145 0 0);
@@ -83,16 +88,23 @@
   --kma-color-muted: oklch(0.269 0 0);
   --kma-color-muted-foreground: oklch(0.708 0 0);
   --kma-color-border: oklch(1 0 0 / 10%);
-  --kma-color-input: oklch(1 0 0 / 6%);
+  /* Mirrors shadcn's `dark:bg-input/30` — `oklch(1 0 0 / 15%)` rebased
+     down to ~4.5% effective alpha. Subtle but visible against the card. */
+  --kma-color-input: oklch(1 0 0 / 4.5%);
   --kma-color-input-foreground: oklch(0.985 0 0);
   --kma-color-ring: oklch(0.556 0 0);
 
   /* Purple-700 in dark mode */
   --kma-color-primary: oklch(0.496 0.265 301.924);
   --kma-color-primary-foreground: #ffffff;
+  /* Pulse colour stays bright in dark mode (~purple-400) so animated
+     icons don't disappear into the background. */
+  --kma-color-primary-bright: oklch(0.74 0.21 303);
 
   --kma-color-danger: oklch(0.704 0.191 22.216);
-  --kma-color-success: oklch(0.765 0.177 163.223);
+  /* Tailwind green-600 — matches the dark-mode success badge in the
+     previous hosted-ui (`dark:bg-green-600`). */
+  --kma-color-success: oklch(0.627 0.194 149.214);
 }
 
 /* Auto — inherit from prefers-color-scheme */
@@ -105,13 +117,14 @@
     --kma-color-muted: oklch(0.269 0 0);
     --kma-color-muted-foreground: oklch(0.708 0 0);
     --kma-color-border: oklch(1 0 0 / 10%);
-    --kma-color-input: oklch(1 0 0 / 6%);
+    --kma-color-input: oklch(1 0 0 / 4.5%);
     --kma-color-input-foreground: oklch(0.985 0 0);
     --kma-color-ring: oklch(0.556 0 0);
     --kma-color-primary: oklch(0.496 0.265 301.924);
     --kma-color-primary-foreground: #ffffff;
+    --kma-color-primary-bright: oklch(0.74 0.21 303);
     --kma-color-danger: oklch(0.704 0.191 22.216);
-    --kma-color-success: oklch(0.765 0.177 163.223);
+    --kma-color-success: oklch(0.627 0.194 149.214);
   }
 }
 
@@ -138,20 +151,27 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   font-size: var(--kma-font-size-sm);
   color: var(--kma-color-muted-foreground);
 }
 
 .kma-powered-by__link {
-  color: inherit;
+  color: var(--kma-color-brand, #81b300);
   text-decoration: none;
-  font-weight: var(--kma-font-weight-medium);
-  transition: color var(--kma-transition-duration);
+  display: inline-flex;
+  align-items: center;
+  transition: opacity var(--kma-transition-duration);
 }
 
 .kma-powered-by__link:hover {
-  color: var(--kma-color-foreground);
+  opacity: 0.8;
+}
+
+.kma-powered-by__logo {
+  height: 12px;
+  width: auto;
+  display: block;
 }
 
 /* ---------- Step ---------- */
@@ -159,12 +179,24 @@
 .kma-step {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+}
+
+/* Form steps (UnifiedAuthForm) use a slightly larger gap so the
+   header / sections / footer have more breathing room. */
+.kma-step--form {
   gap: 20px;
+}
+
+/* Terminal steps (success / error / expired) match the previous
+   `space-y-6 py-4` rhythm. */
+.kma-step--terminal {
+  gap: 24px;
+  padding: 1rem 0;
 }
 
 .kma-step--center {
   text-align: center;
-  padding: 1rem 0;
 }
 
 .kma-step__icon-wrap {
@@ -179,9 +211,11 @@
   text-align: center;
 }
 
+/* Default heading: matches Tailwind `text-2xl` (24px) used by the
+   prime / form / success / error h1's in the previous hosted-ui. */
 .kma-title {
   margin: 0;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: var(--kma-font-weight-semibold);
   color: var(--kma-color-foreground);
   letter-spacing: -0.01em;
@@ -202,6 +236,13 @@
   max-width: 22rem;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* Terminal step subtitles use the slightly larger body size to
+   match the previous `text-base text-muted-foreground` styling. */
+.kma-step--terminal .kma-subtitle {
+  font-size: var(--kma-font-size-lg);
+  max-width: 26rem;
 }
 
 /* ---------- Site icon ---------- */
@@ -226,8 +267,8 @@
 }
 
 .kma-site-icon__fallback {
-  font-size: 22px;
-  font-weight: var(--kma-font-weight-semibold);
+  font-size: 24px;
+  font-weight: 700;
   color: var(--kma-color-foreground);
   letter-spacing: 0.04em;
 }
@@ -262,8 +303,8 @@
 }
 
 .kma-icon-badge svg {
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .kma-icon-badge--success {
@@ -280,10 +321,10 @@
   background: var(--kma-color-muted);
   border: 1px solid var(--kma-color-border);
   border-radius: var(--kma-radius);
-  padding: 14px 16px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .kma-security-row {
@@ -347,6 +388,12 @@
   width: 100%;
 }
 
+/* Slightly shorter primary button used inside forms — matches the
+   previous hosted-ui form submit (`h-11` = 44px). */
+.kma-button--sm {
+  height: 2.75rem;
+}
+
 .kma-button--primary {
   background: var(--kma-color-primary);
   color: var(--kma-color-primary-foreground);
@@ -373,7 +420,7 @@
 .kma-options {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .kma-option {
@@ -554,7 +601,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 16px 0;
+  margin: 0;
   height: 1.25rem;
 }
 
@@ -580,11 +627,13 @@
 .kma-sections {
   display: flex;
   flex-direction: column;
+  gap: 20px;
 }
 
 .kma-sections__item {
   display: flex;
   flex-direction: column;
+  gap: 16px;
 }
 
 /* ---------- Error banner ---------- */
@@ -722,7 +771,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--kma-color-primary);
+  color: var(--kma-color-primary-bright, var(--kma-color-primary));
   animation: kma-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
@@ -758,7 +807,7 @@
   height: 8px;
   border-radius: 9999px;
   background: var(--kma-color-muted);
-  transition: all var(--kma-transition-duration) ease;
+  transition: all 300ms ease;
 }
 
 .kma-loading-dot--active {
@@ -793,7 +842,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--kma-color-primary);
+  color: var(--kma-color-primary-bright, var(--kma-color-primary));
 }
 
 .kma-external-action__primary-icon {
@@ -820,15 +869,36 @@
 .kma-external-action__badge--key {
   top: -4px;
   right: -4px;
-  background: color-mix(in srgb, #f59e0b 20%, transparent);
-  color: #d97706;
+  background: oklch(0.962 0.059 95.617); /* amber-100 */
+  color: oklch(0.666 0.179 58.318); /* amber-600 */
 }
 
 .kma-external-action__badge--fp {
   bottom: -4px;
   left: -4px;
-  background: color-mix(in srgb, #3b82f6 20%, transparent);
-  color: #2563eb;
+  background: oklch(0.932 0.032 255.585); /* blue-100 */
+  color: oklch(0.546 0.245 262.881); /* blue-600 */
+}
+
+.kma-root.kma-theme-dark .kma-external-action__badge--key {
+  background: color-mix(in oklab, oklch(0.414 0.112 45.904) 30%, transparent); /* amber-900/30 */
+  color: oklch(0.828 0.189 84.429); /* amber-400 */
+}
+
+.kma-root.kma-theme-dark .kma-external-action__badge--fp {
+  background: color-mix(in oklab, oklch(0.379 0.146 265.522) 30%, transparent); /* blue-900/30 */
+  color: oklch(0.707 0.165 254.624); /* blue-400 */
+}
+
+@media (prefers-color-scheme: dark) {
+  .kma-root.kma-theme-auto .kma-external-action__badge--key {
+    background: color-mix(in oklab, oklch(0.414 0.112 45.904) 30%, transparent);
+    color: oklch(0.828 0.189 84.429);
+  }
+  .kma-root.kma-theme-auto .kma-external-action__badge--fp {
+    background: color-mix(in oklab, oklch(0.379 0.146 265.522) 30%, transparent);
+    color: oklch(0.707 0.165 254.624);
+  }
 }
 
 .kma-bouncing-dots {
@@ -878,7 +948,7 @@
   }
 }
 
-/* ---------- Expired (circle icon) ---------- */
+/* ---------- Circle icon (used by terminal/expired/standalone steps) ---------- */
 
 .kma-circle-icon {
   width: 5rem;
@@ -894,6 +964,18 @@
   height: 2rem;
 }
 
+/* Smaller variant — 64px circle with 32px icon. Matches the previous
+   hosted-ui ExpiredState (`w-16 h-16` + `w-8 h-8`). */
+.kma-circle-icon--sm {
+  width: 4rem;
+  height: 4rem;
+}
+
+.kma-circle-icon--sm svg {
+  width: 2rem;
+  height: 2rem;
+}
+
 .kma-circle-icon--primary {
   background: color-mix(in srgb, var(--kma-color-primary) 15%, transparent);
   color: var(--kma-color-primary);
@@ -902,4 +984,40 @@
 .kma-circle-icon--muted {
   background: var(--kma-color-muted);
   color: var(--kma-color-muted-foreground);
+}
+
+/* Amber warning variant — matches `bg-amber-100 text-amber-600`
+   (light) / `bg-amber-900/30 text-amber-400` (dark) used by the
+   previous hosted-ui session-expired state. */
+.kma-circle-icon--warning {
+  background: oklch(0.962 0.059 95.617); /* amber-100 */
+  color: oklch(0.666 0.179 58.318); /* amber-600 */
+}
+
+.kma-root.kma-theme-dark .kma-circle-icon--warning {
+  background: color-mix(
+    in oklab,
+    oklch(0.414 0.112 45.904) 30%,
+    transparent
+  ); /* amber-900/30 */
+  color: oklch(0.828 0.189 84.429); /* amber-400 */
+}
+
+@media (prefers-color-scheme: dark) {
+  .kma-root.kma-theme-auto .kma-circle-icon--warning {
+    background: color-mix(
+      in oklab,
+      oklch(0.414 0.112 45.904) 30%,
+      transparent
+    );
+    color: oklch(0.828 0.189 84.429);
+  }
+}
+
+/* ---------- Expired step ---------- */
+
+/* Matches the previous hosted-ui `space-y-6 text-center py-8`. */
+.kma-step--expired {
+  gap: 24px;
+  padding: 2rem 0;
 }

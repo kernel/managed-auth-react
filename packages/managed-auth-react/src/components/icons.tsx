@@ -148,8 +148,8 @@ export const FingerprintIcon = (p: IconProps) => (
 
 export const CheckCircleIcon = (p: IconProps) => (
   <Icon {...p}>
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-    <polyline points="22 4 12 14.01 9 11.01" />
+    <circle cx="12" cy="12" r="10" />
+    <path d="m9 12 2 2 4-4" />
   </Icon>
 );
 
@@ -165,6 +165,15 @@ export const ClockIcon = (p: IconProps) => (
   <Icon {...p}>
     <circle cx="12" cy="12" r="10" />
     <polyline points="12 6 12 12 16 14" />
+  </Icon>
+);
+
+export const RepeatIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="m17 2 4 4-4 4" />
+    <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+    <path d="m7 22-4-4 4-4" />
+    <path d="M21 13v1a4 4 0 0 1-4 4H3" />
   </Icon>
 );
 

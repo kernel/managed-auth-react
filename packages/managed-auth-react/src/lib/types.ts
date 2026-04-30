@@ -24,6 +24,7 @@ export type MFAType =
   | "push"
   | "password"
   | "passkey"
+  | "switch"
   | "other";
 
 export interface DiscoveredField {

@@ -26,6 +26,7 @@ import {
   KeyIcon,
   MailIcon,
   PhoneIcon,
+  RepeatIcon,
   ShieldCheckIcon,
   SmartphoneIcon,
 } from "./icons";
@@ -60,6 +61,8 @@ function getMFAIcon(type: MFAType): ReactNode {
       return <ShieldCheckIcon />;
     case "password":
       return <FingerprintIcon />;
+    case "switch":
+      return <RepeatIcon />;
     default:
       return <KeyIcon />;
   }
@@ -178,9 +181,16 @@ export function UnifiedAuthForm({
     </div>
   );
 
+  // "switch" MFA options ("Use another method") are fallbacks — always
+  // render them last so the primary verification methods come first.
+  const sortedMFAOptions = [...mfaOptions].sort(
+    (a, b) =>
+      (a.type === "switch" ? 1 : 0) - (b.type === "switch" ? 1 : 0),
+  );
+
   const renderMFAOptions = () => (
     <div className="kma-options">
-      {mfaOptions.map((option, idx) => (
+      {sortedMFAOptions.map((option, idx) => (
         <button
           key={idx}
           type="button"
@@ -274,7 +284,12 @@ export function UnifiedAuthForm({
           )}
         </div>
       ))}
-      <Button type="submit" variant="primary" disabled={isLoading} className="kma-button--full">
+      <Button
+        type="submit"
+        variant="primary"
+        disabled={isLoading}
+        className="kma-button--full kma-button--sm"
+      >
         {isLoading ? l.submittingButton : l.submitButton}
       </Button>
     </form>
@@ -317,7 +332,7 @@ export function UnifiedAuthForm({
   if (!socialsTop && hasSSO) sections.push(<div key="sso">{renderSSO()}</div>);
 
   return (
-    <div className="kma-step">
+    <div className="kma-step kma-step--form">
       <div className="kma-step__header">
         <h1 {...slot("title", "kma-title")}>{title}</h1>
         {subtitle && <p {...slot("subtitle", "kma-subtitle")}>{subtitle}</p>}

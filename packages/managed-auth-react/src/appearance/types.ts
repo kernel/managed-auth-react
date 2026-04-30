@@ -25,6 +25,8 @@ export interface AppearanceElements {
   /** The "Powered by Kernel" footer below the card. */
   poweredBy?: ElementValue;
   poweredByLink?: ElementValue;
+  /** SVG of the Kernel logo inside the powered-by footer. */
+  poweredByLogo?: ElementValue;
   /** Icon displayed on the prime (consent) step. */
   siteIcon?: ElementValue;
   /** Step title heading. */
@@ -86,6 +88,7 @@ export interface AppearanceElements {
   successTitle?: ElementValue;
   successDescription?: ElementValue;
   /** Expired step. */
+  expiredIcon?: ElementValue;
   expiredCard?: ElementValue;
   expiredTitle?: ElementValue;
   expiredDescription?: ElementValue;

@@ -101,7 +101,7 @@ export function StepError({
   const hasDetails = rawDetails && rawDetails !== description;
 
   return (
-    <div className="kma-step kma-step--center">
+    <div className="kma-step kma-step--terminal kma-step--center">
       <div className="kma-step__icon-wrap">
         <div className="kma-icon-with-badge">
           <SiteIcon siteName={siteName} tone="muted" />
@@ -132,12 +132,6 @@ export function StepError({
             </div>
           )}
         </div>
-      )}
-
-      {errorCode && (
-        <p {...slot("errorCode", "kma-error-code")}>
-          {l.errorCodeLabel}: <code>{errorCode}</code>
-        </p>
       )}
 
       <p className="kma-loading-hint">{l.errorCloseHint}</p>

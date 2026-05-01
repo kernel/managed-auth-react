@@ -9,6 +9,9 @@ export type {
   AppearanceLayout,
   ColorScheme,
   ElementValue,
+  ElementStyle,
+  ElementStylePseudoKey,
+  KernelLogoColor,
 } from "./appearance/types";
 
 export type { Localization, Localizer } from "./localization";

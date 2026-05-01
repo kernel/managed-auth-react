@@ -29,9 +29,11 @@ export default function LoginPage() {
 }
 ```
 
+`sessionId` and `handoffCode` come from your backend's call to `POST /profiles/auth/{id}/login` — pass the connection ID and the single-use `code` query parameter from the returned `hosted_url`.
+
 ## Styling
 
-Three layers, compose any or all:
+Four layers, compose any or all.
 
 ### 1. Design tokens → CSS variables
 
@@ -47,6 +49,8 @@ Three layers, compose any or all:
   {...rest}
 />
 ```
+
+Every `AppearanceVariables` field becomes a `--kma-*` CSS custom property on the root, so you can also wire them up from your own stylesheet.
 
 ### 2. Per-element overrides
 
@@ -76,6 +80,38 @@ Every rendered element also carries a `data-kma-element="<key>"` attribute, so y
 }
 ```
 
+#### Pseudo-state styles
+
+Style objects support nested pseudo-state selectors (Stripe Elements pattern). They're compiled to scoped CSS at runtime — no separate stylesheet, no `<style>` tag in your tree:
+
+```tsx
+<KernelManagedAuth
+  appearance={{
+    elements: {
+      input: {
+        style: {
+          borderColor: "#cbd5e1",
+          ":hover": { borderColor: "#94a3b8" },
+          ":focus-visible": {
+            borderColor: "#0f172a",
+            boxShadow: "0 0 0 3px rgba(15, 23, 42, 0.15)",
+          },
+          "::placeholder": { color: "#94a3b8" },
+        },
+      },
+      buttonSecondary: {
+        style: {
+          ":hover": { textDecoration: "underline", opacity: 1 },
+        },
+      },
+    },
+  }}
+  {...rest}
+/>
+```
+
+Supported keys: `:hover`, `:focus`, `:focus-visible`, `:active`, `:disabled`, `::placeholder`.
+
 ### 3. Layout toggles
 
 ```tsx
@@ -83,6 +119,7 @@ Every rendered element also carries a `data-kma-element="<key>"` attribute, so y
   appearance={{
     layout: {
       poweredByKernel: false,
+      kernelLogoColor: "white", // 'auto' | 'green' | 'black' | 'white'
       showLegalText: false,
       showSecurityCard: false,
       socialButtonsPlacement: "top",
@@ -93,7 +130,9 @@ Every rendered element also carries a `data-kma-element="<key>"` attribute, so y
 />
 ```
 
-### Theme
+`kernelLogoColor` is restricted to the four brand-sanctioned options. For anything else (one-off marketing tints, etc.) reach for the `elements.poweredByLogo` slot — it accepts arbitrary CSS.
+
+### 4. Theme
 
 ```tsx
 <KernelManagedAuth appearance={{ theme: "dark" }} {...rest} />
@@ -110,7 +149,7 @@ Pass a partial map; everything else falls back to English.
     primeTitle: (site) => `Connectez-vous à ${site}`,
     primeContinueButton: "Continuer",
     submitButton: "Se connecter",
-    mfaTypeLabels: { sms: "SMS", email: "E-mail" },
+    mfaTypeLabels: { sms: "SMS", email: "E-mail", switch: "Autre méthode" },
   }}
   {...rest}
 />
@@ -133,9 +172,32 @@ See [`Localization`](./src/localization/types.ts) for every supported key.
 | `baseUrl`      | `string`                          | no       | Override the Kernel API base URL (for testing).     |
 | `fetch`        | `typeof fetch`                    | no       | Inject a custom fetch (for SSR or instrumentation). |
 
-## Element keys
+### Headless step components
 
-`root`, `shell`, `card`, `poweredBy`, `poweredByLink`, `siteIcon`, `title`, `subtitle`, `description`, `securityCard`, `securityRow`, `securityIcon`, `securityText`, `label`, `inputWrapper`, `input`, `inputHint`, `passwordToggle`, `button`, `buttonPrimary`, `buttonSecondary`, `divider`, `dividerLine`, `dividerText`, `ssoButton`, `ssoButtonIcon`, `ssoButtonLabel`, `mfaOption`, `mfaOptionIcon`, `mfaOptionLabel`, `mfaOptionTarget`, `mfaOptionDescription`, `signInOption`, `signInOptionLabel`, `signInOptionDescription`, `signInOptionChevron`, `errorBanner`, `errorBannerText`, `errorIcon`, `errorTitle`, `errorDescription`, `errorCode`, `successIcon`, `successTitle`, `successDescription`, `expiredCard`, `expiredTitle`, `expiredDescription`, `spinner`, `loadingText`, `externalActionIcon`, `externalActionMessage`, `form`, `formField`, `legalText`, `legalLink`.
+For 99% of integrations you want `<KernelManagedAuth />`. If you need to drive the UI yourself — custom controllers, test harnesses, Storybook, or a non-standard flow — the underlying step components are all exported:
+
+```tsx
+import {
+  Shell,
+  StepPrime,
+  StepSuccess,
+  StepError,
+  StepExpired,
+  LoadingState,
+  ExternalActionWaiting,
+  UnifiedAuthForm,
+  AppearanceProvider,
+  LocalizationProvider,
+} from "@onkernel/managed-auth-react";
+```
+
+Wrap them in `<AppearanceProvider>` and `<LocalizationProvider>` to inherit the same styling/localization plumbing as the all-in-one component. See `app/test-new/` in the [hosted-ui repo](https://github.com/kernel/managed-auth-hosted-ui) for a working harness.
+
+### Element keys
+
+`root`, `shell`, `card`, `poweredBy`, `poweredByLink`, `poweredByLogo`, `siteIcon`, `title`, `subtitle`, `description`, `securityCard`, `securityRow`, `securityIcon`, `securityText`, `label`, `inputWrapper`, `input`, `inputHint`, `passwordToggle`, `button`, `buttonPrimary`, `buttonSecondary`, `divider`, `dividerLine`, `dividerText`, `ssoButton`, `ssoButtonIcon`, `ssoButtonLabel`, `mfaOption`, `mfaOptionIcon`, `mfaOptionLabel`, `mfaOptionTarget`, `mfaOptionDescription`, `signInOption`, `signInOptionLabel`, `signInOptionDescription`, `signInOptionChevron`, `errorBanner`, `errorBannerText`, `errorIcon`, `errorTitle`, `errorDescription`, `errorCode`, `successIcon`, `successTitle`, `successDescription`, `expiredIcon`, `expiredCard`, `expiredTitle`, `expiredDescription`, `spinner`, `loadingText`, `externalActionIcon`, `externalActionMessage`, `form`, `formField`, `legalText`, `legalLink`.
+
+`ssoButton`, `mfaOption`, and `signInOption` compose `button` → `buttonSecondary` → the slot-specific key, so any styling applied at `buttonSecondary` (e.g. a shared hover state) flows through to all three.
 
 ## License
 

@@ -5,6 +5,7 @@ Monorepo for [`@onkernel/managed-auth-react`](./packages/managed-auth-react) —
 ## Packages
 
 - [`@onkernel/managed-auth-react`](./packages/managed-auth-react) — the published component library.
+- [`@onkernel/managed-auth-react-demo`](./packages/demo) — private Vite app for local visual testing with mocked API responses.
 
 ## Development
 
@@ -12,7 +13,39 @@ Monorepo for [`@onkernel/managed-auth-react`](./packages/managed-auth-react) —
 bun install
 bun run --filter '@onkernel/managed-auth-react' build
 bun run --filter '@onkernel/managed-auth-react' typecheck
+bun run --filter '@onkernel/managed-auth-react-demo' dev
 ```
+
+### Linking into a consumer (e.g. managed-auth-hosted-ui)
+
+`tsup` watch mode can mirror `dist/` into a consumer's `node_modules` after every successful rebuild. Cleanest way to iterate on the package against real consumers without dealing with bun symlinks or stale tarballs:
+
+```bash
+# In the consumer (one-time): install the package once via tarball/file dep so
+# node_modules/@onkernel/managed-auth-react/ exists.
+
+# In packages/managed-auth-react:
+LINK_TO=../../managed-auth-hosted-ui/node_modules/@onkernel/managed-auth-react bun run dev
+# or use the shorthand for the hosted-ui repo at ../managed-auth-hosted-ui:
+bun run dev:hosted-ui
+```
+
+Every successful build (JS + DTS) replaces the consumer's `dist/`, so refreshing the dev server picks up changes immediately — no reinstall needed.
+
+## CI / releases
+
+- `.github/workflows/test.yaml` runs on every PR and push to `main`: `format:check`, `typecheck`, `build`, and a `npm pack --dry-run` to verify publishability.
+- `.github/workflows/release.yaml` triggers on `v*` tags. Verifies the tag matches `package.json`, builds, and publishes to npm via OIDC trusted publishing (`--provenance`). Hyphenated tags like `v0.2.0-beta.1` are marked as GitHub prereleases.
+
+To cut a release:
+
+```bash
+# Bump the version in packages/managed-auth-react/package.json on main, then:
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+Bun is pinned to `1.2.21` in both workflows (and in `packageManager` at the root) so lockfile-format drift across bun majors doesn't silently break CI.
 
 ## License
 

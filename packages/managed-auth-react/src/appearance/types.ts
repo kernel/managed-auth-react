@@ -1,15 +1,38 @@
 import type { CSSProperties } from "react";
 
 /**
+ * Pseudo-state selectors supported inside element style objects. Stripe
+ * Elements popularized this pattern: nest a CSSProperties block under one
+ * of these keys and the library compiles it to scoped CSS at runtime.
+ */
+export type ElementStylePseudoKey =
+  | ":hover"
+  | ":focus"
+  | ":focus-visible"
+  | ":active"
+  | ":disabled"
+  | "::placeholder";
+
+/**
+ * Element style object — flat CSSProperties at the top level, plus optional
+ * nested CSSProperties under any pseudo-state selector.
+ *
+ * @example
+ *   { background: '#81b300', ':hover': { textDecoration: 'underline' } }
+ */
+export type ElementStyle = CSSProperties &
+  Partial<Record<ElementStylePseudoKey, CSSProperties>>;
+
+/**
  * Per-element override value. Accepts any of:
  *   - a className string              → 'my-button'
- *   - a CSSProperties style object    → { color: 'red' }
+ *   - a style object (incl. pseudos)  → { color: 'red', ':hover': { color: 'blue' } }
  *   - a composite                     → { className: 'x', style: { color: 'red' } }
  */
 export type ElementValue =
   | string
-  | CSSProperties
-  | { className?: string; style?: CSSProperties };
+  | ElementStyle
+  | { className?: string; style?: ElementStyle };
 
 /**
  * Every stylable element in the managed auth flow gets a stable key here.
@@ -147,6 +170,21 @@ export interface AppearanceVariables {
 }
 
 /**
+ * Brand-sanctioned color variants for the Kernel wordmark, per BRAND.md
+ * ("Variants: 1. Green on light backgrounds, 2. Green on dark backgrounds,
+ *  3. Black monochrome, 4. White monochrome").
+ *
+ * `'auto'` (default) inherits the current text color from the surrounding
+ * `.kma-powered-by__link`, which is already theme-aware in the shipped
+ * stylesheet — green by default, white in dark mode.
+ *
+ * Need a non-sanctioned color for one-off marketing or a tinted brand?
+ * Reach for `elements.poweredByLogo` — that slot accepts arbitrary CSS and
+ * is intentionally not type-restricted.
+ */
+export type KernelLogoColor = "auto" | "green" | "black" | "white";
+
+/**
  * Structural toggles that change layout rather than styling.
  */
 export interface AppearanceLayout {
@@ -155,6 +193,13 @@ export interface AppearanceLayout {
    * @default true
    */
   poweredByKernel?: boolean;
+  /**
+   * Color variant for the Kernel wordmark in the footer. Restricted to the
+   * four brand-sanctioned options; for free-form colors use the
+   * `elements.poweredByLogo` slot.
+   * @default 'auto'
+   */
+  kernelLogoColor?: KernelLogoColor;
   /**
    * Show the legal/ToS text on the consent (prime) step.
    * @default true

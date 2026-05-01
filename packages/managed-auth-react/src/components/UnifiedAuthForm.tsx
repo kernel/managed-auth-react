@@ -151,14 +151,18 @@ export function UnifiedAuthForm({
   const socialsTop = layout?.socialButtonsPlacement === "top";
 
   const renderSignInOptions = () => (
-    <div className="kma-options" data-kma-element="signInOption">
+    <div className="kma-options">
       {signInOptions.map((option) => (
-        <button
+        // Routed through Button so `button` + `buttonSecondary` slots compose
+        // with the `signInOption`-specific slot. Without this, a customer
+        // overriding `buttonSecondary:hover` would silently miss this button.
+        <Button
           key={option.id}
-          type="button"
+          variant="secondary"
+          slotKey="signInOption"
+          className="kma-option"
           onClick={() => onSignInOptionSelect(option.id)}
           disabled={isLoading}
-          {...slot("signInOption", "kma-button kma-button--secondary kma-option")}
         >
           <div className="kma-option__text">
             <div {...slot("signInOptionLabel", "kma-option__label")}>
@@ -176,7 +180,7 @@ export function UnifiedAuthForm({
           >
             <ChevronRightIcon />
           </span>
-        </button>
+        </Button>
       ))}
     </div>
   );
@@ -191,12 +195,13 @@ export function UnifiedAuthForm({
   const renderMFAOptions = () => (
     <div className="kma-options">
       {sortedMFAOptions.map((option, idx) => (
-        <button
+        <Button
           key={idx}
-          type="button"
+          variant="secondary"
+          slotKey="mfaOption"
+          className="kma-option"
           onClick={() => onMFASelect(option.type)}
           disabled={isLoading}
-          {...slot("mfaOption", "kma-button kma-button--secondary kma-option")}
         >
           <span {...slot("mfaOptionIcon", "kma-option__icon")} aria-hidden="true">
             {getMFAIcon(option.type)}
@@ -216,7 +221,7 @@ export function UnifiedAuthForm({
               </div>
             )}
           </div>
-        </button>
+        </Button>
       ))}
     </div>
   );
@@ -300,12 +305,13 @@ export function UnifiedAuthForm({
       {ssoButtons.map((sso, idx) => {
         const info = getSSOProviderInfo(sso.provider);
         return (
-          <button
+          <Button
             key={idx}
-            type="button"
+            variant="secondary"
+            slotKey="ssoButton"
+            className="kma-sso-button"
             onClick={() => onSSOClick(sso)}
             disabled={isLoading}
-            {...slot("ssoButton", "kma-button kma-button--secondary kma-sso-button")}
           >
             {info.icon && (
               <span
@@ -318,7 +324,7 @@ export function UnifiedAuthForm({
             <span {...slot("ssoButtonLabel", "kma-sso-button__label")}>
               {l.ssoButtonLabel(info.label)}
             </span>
-          </button>
+          </Button>
         );
       })}
     </div>

@@ -45,7 +45,7 @@ export function Shell({ appearance, children }: ShellProps) {
               rel="noopener noreferrer"
               aria-label="Kernel"
             >
-              <KernelLogo />
+              <KernelLogo brandColor={appearance?.layout?.kernelLogoColor} />
             </a>
           </div>
         )}

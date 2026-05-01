@@ -4,8 +4,10 @@ import type {
   Appearance,
   AppearanceElementKey,
   AppearanceElements,
+  ElementStyle,
   ElementValue,
 } from "./types";
+import { compilePseudoStyle } from "./pseudoStyles";
 
 interface AppearanceContextValue {
   elements: AppearanceElements;
@@ -28,18 +30,18 @@ export function AppearanceProvider({ appearance, children }: AppearanceProviderP
 
 function normalizeElement(value: ElementValue | undefined): {
   className?: string;
-  style?: React.CSSProperties;
+  style?: ElementStyle;
 } {
   if (value === undefined || value === null) return {};
   if (typeof value === "string") return { className: value };
   if ("className" in value || "style" in value) {
     return {
       className: (value as { className?: string }).className,
-      style: (value as { style?: React.CSSProperties }).style,
+      style: (value as { style?: ElementStyle }).style,
     };
   }
-  // Bare CSSProperties object
-  return { style: value as React.CSSProperties };
+  // Bare style object (may include pseudo-state nested keys).
+  return { style: value as ElementStyle };
 }
 
 /**
@@ -61,9 +63,14 @@ export function useSlot() {
     "data-kma-element": AppearanceElementKey;
   } {
     const { className, style } = normalizeElement(elements[key]);
+    // Split out :hover / :focus / ::placeholder etc. into a generated class.
+    // The base CSSProperties (everything not under a pseudo key) still flows
+    // through as inline `style` so simple usage stays a single render-time
+    // object with no stylesheet round-trip.
+    const { base, className: pseudoClassName } = compilePseudoStyle(style);
     return {
-      className: clsx(internalClassName, className) || "",
-      style,
+      className: clsx(internalClassName, className, pseudoClassName) || "",
+      style: base,
       "data-kma-element": key,
     };
   };

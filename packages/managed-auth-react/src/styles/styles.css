@@ -250,7 +250,11 @@
 .kma-site-icon {
   width: 5rem;
   height: 5rem;
-  border-radius: 1rem;
+  /* Tied to the radius token so consumers' borderRadius override actually
+     reaches this surface. The 1rem hardcode it replaced was a tokenization
+     miss — every other surface in the flow (card, inputs, buttons) already
+     drives off `--kma-radius-*`. */
+  border-radius: var(--kma-radius-lg);
   background: var(--kma-color-card);
   border: 2px solid var(--kma-color-border);
   display: flex;
@@ -508,7 +512,18 @@
 .kma-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+}
+
+/* Default spacing between any two adjacent form children — keeps the
+   gap between the last field and the submit button comfortable. */
+.kma-form > * + * {
+  margin-top: 16px;
+}
+
+/* Tighter spacing specifically between two consecutive input fields,
+   so a column of email/password reads as one cluster. */
+.kma-form > .kma-form-field + .kma-form-field {
+  margin-top: 12px;
 }
 
 .kma-form-field {

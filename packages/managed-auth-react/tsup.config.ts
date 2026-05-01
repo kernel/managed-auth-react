@@ -1,5 +1,5 @@
 import { defineConfig } from "tsup";
-import { cp, rm } from "node:fs/promises";
+import { cp, rm, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -32,8 +32,37 @@ export default defineConfig({
       );
       return;
     }
+
+    // tsup's `onSuccess` fires after the JS build but BEFORE the DTS
+    // sub-process completes. Mirroring dist/ now would copy a stale
+    // index.d.ts and consumers' typecheck would fail with phantom
+    // "property doesn't exist" errors.
+    //
+    // Anchor on the JS bundle's mtime (just written this build) and wait
+    // until index.d.ts is at least as fresh. Works for both clean builds
+    // (where the d.ts doesn't exist yet) and --watch builds (where it
+    // exists but is stale until DTS finishes).
+    await waitForDtsRefresh("dist/index.js", "dist/index.d.ts", 5000);
+
     await rm(targetDist, { recursive: true, force: true });
     await cp("dist", targetDist, { recursive: true });
     console.log(`[dev:link] Synced dist → ${targetDist}`);
   },
 });
+
+async function waitForDtsRefresh(
+  jsPath: string,
+  dtsPath: string,
+  timeoutMs: number,
+): Promise<void> {
+  const jsMtime = (await stat(jsPath)).mtimeMs;
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    if (existsSync(dtsPath)) {
+      const dtsMtime = (await stat(dtsPath)).mtimeMs;
+      if (dtsMtime >= jsMtime) return;
+    }
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  console.warn(`[dev:link] Timed out waiting for ${dtsPath}; syncing anyway.`);
+}

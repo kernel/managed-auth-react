@@ -1,9 +1,40 @@
 import type { SVGProps } from "react";
 import { useSlot } from "../appearance/context";
+import type { KernelLogoColor } from "../appearance/types";
 
-export function KernelLogo(props: SVGProps<SVGSVGElement>) {
+interface KernelLogoProps extends SVGProps<SVGSVGElement> {
+  /**
+   * Brand-sanctioned wordmark color. Resolved to a hex value here. Pass
+   * `'auto'` (default) to inherit the surrounding `currentColor`, which
+   * the shipped stylesheet already themes (green light / white dark).
+   */
+  brandColor?: KernelLogoColor;
+}
+
+const BRAND_COLORS: Record<Exclude<KernelLogoColor, "auto">, string> = {
+  green: "#81b300",
+  black: "#000000",
+  white: "#ffffff",
+};
+
+export function KernelLogo({ brandColor, style: callerStyle, ...props }: KernelLogoProps) {
   const slot = useSlot();
-  const slotProps = slot("poweredByLogo", "kma-powered-by__logo");
+  const { style: slotStyle, ...slotPropsRest } = slot(
+    "poweredByLogo",
+    "kma-powered-by__logo",
+  );
+
+  // Layered precedence (lowest → highest):
+  //   1. CSS default — `fill="currentColor"` inheriting .kma-powered-by__link
+  //   2. layout.kernelLogoColor — brand-sanctioned color via inline `color`
+  //   3. elements.poweredByLogo  — full CSS escape hatch via slot
+  //   4. caller `style={...}`    — last word for ad-hoc tweaks
+  const layoutStyle =
+    brandColor && brandColor !== "auto"
+      ? { color: BRAND_COLORS[brandColor] }
+      : undefined;
+  const mergedStyle = { ...layoutStyle, ...slotStyle, ...callerStyle };
+
   return (
     <svg
       viewBox="0 0 666 140"
@@ -11,8 +42,9 @@ export function KernelLogo(props: SVGProps<SVGSVGElement>) {
       xmlns="http://www.w3.org/2000/svg"
       role="img"
       aria-label="Kernel"
-      {...slotProps}
+      {...slotPropsRest}
       {...props}
+      style={mergedStyle}
     >
       <path d="M23.3415 0C29.7994 0 35.2863 2.29411 39.7991 6.88293C44.3895 11.394 46.6844 16.8779 46.6844 23.3333V34.6041C46.6844 36.0042 48.4644 36.6 49.3059 35.4814L68.977 9.3339C72.7896 4.20058 77.886 1.2059 84.2662 0.350342C90.6461 -0.582783 96.443 0.856002 101.656 4.66695C106.791 8.55572 109.786 13.689 110.642 20.0663C111.576 26.4441 110.098 32.2008 106.207 37.3342L85.9256 64.4017C85.1492 65.4378 85.1487 66.8625 85.9241 67.8994L111.926 102.667C115.816 107.801 117.295 113.556 116.362 119.934C115.506 126.311 112.509 131.444 107.374 135.333C102.161 139.144 96.3645 140.583 89.9845 139.65C83.6045 138.794 78.5078 135.801 74.6953 130.668L49.3045 97.0376C48.4618 95.9214 46.6844 96.5174 46.6844 97.9163V116.667C46.6844 123.122 44.3896 128.645 39.7991 133.234C35.2862 137.745 29.7995 140 23.3415 140C16.8838 140 11.3591 137.745 6.76862 133.234C2.25588 128.645 0 123.122 0 116.667V23.3333C2.28183e-05 16.8779 2.25589 11.394 6.76862 6.88293C11.3591 2.29421 16.8838 0.000173581 23.3415 0Z" />
       <path

@@ -64,8 +64,14 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # Build outside the changesets/action so the action's `publish`
-      # command stays a single npm call, matching the shadcn/ui pattern.
+      # `bun install` skips the standard node_modules/.bin/changeset shim
+      # that npm/pnpm/yarn create, so neither npx nor PATH-based lookups
+      # find the binary. Installing @changesets/cli globally via npm gives
+      # us a clean `changeset` on PATH for the action below. We keep using
+      # bun for the workspace install so the project lockfile stays in use.
+      - name: Install changesets CLI (global, for binary on PATH)
+        run: npm install -g @changesets/cli
+
       - name: Build package
         run: bun run --filter '@onkernel/managed-auth-react' build
 
@@ -77,11 +83,7 @@ jobs:
       - name: Create release PR or publish
         uses: changesets/action@v1
         with:
-          # Bun's script runner doesn't surface node_modules/.bin/changeset
-          # on PATH consistently inside chained `&&` commands, so we use
-          # `npx` here — same pattern shadcn/ui uses with pnpm. Works
-          # because Node is already on the runner for the npm OIDC step.
-          publish: npx changeset publish
+          publish: changeset publish
           title: "chore: version packages"
           commit: "chore: version packages"
         env:

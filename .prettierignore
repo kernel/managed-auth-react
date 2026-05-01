@@ -1,0 +1,12 @@
+# Bun and Changesets re-serialize package.json on every install / version
+# bump and use single-line arrays. Prettier wraps JSON arrays multi-line.
+# Letting prettier touch package.json would cause endless format churn,
+# so its formatting is owned by bun + changesets, not prettier.
+**/package.json
+
+# Generated build output and lockfiles
+**/dist/**
+bun.lock
+
+# Auto-generated changelog (managed by changesets)
+**/CHANGELOG.md

@@ -43,17 +43,31 @@ Every successful build (JS + DTS) replaces the consumer's `dist/`, so refreshing
 ## CI / releases
 
 - `.github/workflows/test.yaml` runs on every PR and push to `main`: `format:check`, `typecheck`, `build`, and a `npm pack --dry-run` to verify publishability.
-- `.github/workflows/release.yaml` triggers on `v*` tags. Verifies the tag matches `package.json`, builds, and publishes to npm via OIDC trusted publishing (`--provenance`). Hyphenated tags like `v0.2.0-beta.1` are marked as GitHub prereleases.
-
-To cut a release:
-
-```bash
-# Bump the version in packages/managed-auth-react/package.json on main, then:
-git tag v0.2.0
-git push origin v0.2.0
-```
+- `.github/workflows/release.yaml` runs on every push to `main` and is driven by [Changesets](https://github.com/changesets/changesets). Either opens/updates a "Version Packages" PR, or — when that PR is merged — publishes to npm via OIDC trusted publishing.
 
 Bun is pinned to `1.2.21` in both workflows (and in `packageManager` at the root) so lockfile-format drift across bun majors doesn't silently break CI.
+
+### Cutting a release
+
+The release flow is fully PR-driven — no direct `package.json` edits, no manual `git tag`, no main-branch bypasses.
+
+1. **In any PR that changes published behavior**, add a changeset:
+
+   ```bash
+   bun run changeset
+   ```
+
+   The CLI asks which packages changed and which bump (patch / minor / major), then writes a `.changeset/<random>.md` file describing the change. Commit it alongside your code.
+
+   Skip the changeset for tooling/infra/docs PRs that don't affect what consumers see.
+
+2. **Merge your PR to `main`.** The Changesets bot runs and either:
+   - Opens (or updates) a single **"chore: version packages"** PR that bumps `package.json` versions, regenerates `CHANGELOG.md`, and deletes the consumed changeset files. Multiple feature PRs accumulate into the same Version PR.
+   - If no pending changesets exist (i.e. the Version PR was just merged), runs `bun run release` which builds the package and calls `changeset publish` → `npm publish` for every version not yet on the registry, then tags + creates the GitHub release.
+
+3. **To ship**, review and merge the open Version PR. The next workflow run publishes.
+
+That's it. The git tag, npm publish, and GitHub release are all created by the bot on Version-PR merge.
 
 ## License
 

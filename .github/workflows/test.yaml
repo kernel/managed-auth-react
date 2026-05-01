@@ -31,11 +31,15 @@ jobs:
       - name: Format check
         run: bun run format:check
 
-      - name: Typecheck
-        run: bun run typecheck
-
+      # Package build comes before typecheck so the demo workspace can
+      # resolve `@onkernel/managed-auth-react`'s emitted .d.ts. Locally
+      # this is invisible because dist/ already exists from prior runs;
+      # in CI we get a fresh checkout.
       - name: Build package
         run: bun run --filter '@onkernel/managed-auth-react' build
+
+      - name: Typecheck
+        run: bun run typecheck
 
       # Dry-run npm pack so we catch missing files / bad exports BEFORE a
       # tagged release tries to publish. Exits non-zero if e.g. dist/ is

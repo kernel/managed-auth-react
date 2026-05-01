@@ -18,9 +18,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Bun
+        # Pin to the version in package.json `packageManager` so the
+        # lockfile format matches and `bun install --frozen-lockfile`
+        # never trips on bun-version drift. Bump intentionally.
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: "1.2.21"
 
       - name: Install dependencies
         run: bun install --frozen-lockfile

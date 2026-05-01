@@ -18,5 +18,5 @@
     "prettier": "^3.3.0",
     "typescript": "^5.6.0"
   },
-  "packageManager": "bun@1.1.30"
+  "packageManager": "bun@1.2.21"
 }

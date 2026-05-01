@@ -82,16 +82,10 @@ export function useManagedAuthSession(
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const stateRef = useRef<ManagedAuthResponse | null>(null);
   const callbackFiredRef = useRef<{ success: boolean; error: boolean }>({
     success: false,
     error: false,
   });
-
-  // Keep a ref of the latest state for onSuccess / onError callbacks.
-  useEffect(() => {
-    stateRef.current = state;
-  }, [state]);
 
   const stopPolling = useCallback(() => {
     if (pollDelayRef.current) {
@@ -172,7 +166,6 @@ export function useManagedAuthSession(
     [pollOnce],
   );
 
-  // Exchange handoff code on mount.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -184,7 +177,6 @@ export function useManagedAuthSession(
         );
         if (cancelled) return;
         setJwt(token);
-        // Fetch initial state + derive UI
         const initial = await retrieveManagedAuth(sessionId, token, options);
         if (cancelled) return;
         setState(initial);

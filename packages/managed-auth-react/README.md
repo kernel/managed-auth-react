@@ -122,16 +122,16 @@ See [`Localization`](./src/localization/types.ts) for every supported key.
 
 ### `<KernelManagedAuth />` props
 
-| Prop          | Type                                       | Required | Description                                           |
-| ------------- | ------------------------------------------ | -------- | ----------------------------------------------------- |
-| `sessionId`   | `string`                                   | yes      | Managed auth connection ID from your backend.         |
-| `handoffCode` | `string`                                   | yes      | Single-use handoff code, exchanged for a JWT.         |
-| `appearance`  | `Appearance`                               | no       | Styling — variables, elements, layout, theme.         |
-| `localization`| `Localization`                             | no       | Partial string overrides.                             |
-| `onSuccess`   | `(p: AuthSuccessPayload) => void`          | no       | Fires on `SUCCESS`.                                   |
-| `onError`     | `(p: AuthErrorPayload) => void`            | no       | Fires on `FAILED`, `CANCELED`, `EXPIRED`.             |
-| `baseUrl`     | `string`                                   | no       | Override the Kernel API base URL (for testing).       |
-| `fetch`       | `typeof fetch`                             | no       | Inject a custom fetch (for SSR or instrumentation).   |
+| Prop           | Type                              | Required | Description                                         |
+| -------------- | --------------------------------- | -------- | --------------------------------------------------- |
+| `sessionId`    | `string`                          | yes      | Managed auth connection ID from your backend.       |
+| `handoffCode`  | `string`                          | yes      | Single-use handoff code, exchanged for a JWT.       |
+| `appearance`   | `Appearance`                      | no       | Styling — variables, elements, layout, theme.       |
+| `localization` | `Localization`                    | no       | Partial string overrides.                           |
+| `onSuccess`    | `(p: AuthSuccessPayload) => void` | no       | Fires on `SUCCESS`.                                 |
+| `onError`      | `(p: AuthErrorPayload) => void`   | no       | Fires on `FAILED`, `CANCELED`, `EXPIRED`.           |
+| `baseUrl`      | `string`                          | no       | Override the Kernel API base URL (for testing).     |
+| `fetch`        | `typeof fetch`                    | no       | Inject a custom fetch (for SSR or instrumentation). |
 
 ## Element keys
 

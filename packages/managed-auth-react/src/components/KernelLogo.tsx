@@ -17,7 +17,11 @@ const BRAND_COLORS: Record<Exclude<KernelLogoColor, "auto">, string> = {
   white: "#ffffff",
 };
 
-export function KernelLogo({ brandColor, style: callerStyle, ...props }: KernelLogoProps) {
+export function KernelLogo({
+  brandColor,
+  style: callerStyle,
+  ...props
+}: KernelLogoProps) {
   const slot = useSlot();
   const { style: slotStyle, ...slotPropsRest } = slot(
     "poweredByLogo",

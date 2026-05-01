@@ -16,41 +16,64 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     | "signInOption";
 }
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant = "primary", slotKey, className, type = "button", children, ...rest },
-  ref,
-) {
-  const slot = useSlot();
-  const baseProps = slot(
-    "button",
-    clsx("kma-button", variant === "primary" ? "kma-button--primary" : "kma-button--secondary"),
-  );
-  const variantProps = slot(
-    variant === "primary" ? "buttonPrimary" : "buttonSecondary",
-    undefined,
-  );
-  const extraProps = slotKey && slotKey !== "button" ? slot(slotKey, undefined) : null;
-
-  const merged = {
-    className: clsx(
-      baseProps.className,
-      variantProps.className,
-      extraProps?.className,
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  function Button(
+    {
+      variant = "primary",
+      slotKey,
       className,
-    ),
-    style: { ...baseProps.style, ...variantProps.style, ...extraProps?.style },
-  };
+      type = "button",
+      children,
+      ...rest
+    },
+    ref,
+  ) {
+    const slot = useSlot();
+    const baseProps = slot(
+      "button",
+      clsx(
+        "kma-button",
+        variant === "primary" ? "kma-button--primary" : "kma-button--secondary",
+      ),
+    );
+    const variantProps = slot(
+      variant === "primary" ? "buttonPrimary" : "buttonSecondary",
+      undefined,
+    );
+    const extraProps =
+      slotKey && slotKey !== "button" ? slot(slotKey, undefined) : null;
 
-  return (
-    <button
-      ref={ref}
-      type={type}
-      data-kma-element={extraProps ? slotKey : variant === "primary" ? "buttonPrimary" : "buttonSecondary"}
-      {...rest}
-      className={merged.className}
-      style={{ ...merged.style, ...rest.style }}
-    >
-      {children}
-    </button>
-  );
-});
+    const merged = {
+      className: clsx(
+        baseProps.className,
+        variantProps.className,
+        extraProps?.className,
+        className,
+      ),
+      style: {
+        ...baseProps.style,
+        ...variantProps.style,
+        ...extraProps?.style,
+      },
+    };
+
+    return (
+      <button
+        ref={ref}
+        type={type}
+        data-kma-element={
+          extraProps
+            ? slotKey
+            : variant === "primary"
+              ? "buttonPrimary"
+              : "buttonSecondary"
+        }
+        {...rest}
+        className={merged.className}
+        style={{ ...merged.style, ...rest.style }}
+      >
+        {children}
+      </button>
+    );
+  },
+);

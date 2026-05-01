@@ -1,0 +1,95 @@
+name: Release
+
+# Publishing flow:
+#   1. PRs land on main (passing the test workflow)
+#   2. Bump `packages/managed-auth-react/package.json` "version" on main
+#   3. Tag and push:  `git tag v0.1.0-alpha.1 && git push --tags`
+#   4. This workflow validates the tag matches package.json, builds, and
+#      publishes to npm via OIDC trusted publishers (no NPM_TOKEN needed).
+#
+# One-time setup before the first release:
+#   - On npmjs.com → @onkernel/managed-auth-react → Settings → Trusted Publishers
+#     add this repository + workflow filename + the `release` job name.
+#   - The first publish under OIDC requires the package to already exist
+#     OR the publishing user to have permission to create scoped packages
+#     under @onkernel.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write   # creating GitHub releases
+  id-token: write   # npm OIDC trusted publishing
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      # OIDC trusted publishers require npm >= 11.5.1 — the version bundled
+      # with Node 20 is older. This is the same workaround the CLI uses.
+      - name: Ensure latest npm
+        run: npm install -g npm@latest
+
+      # Catch the most common release foot-gun: tag pushed before bumping
+      # package.json. Fail loud here instead of publishing a mismatched
+      # version that npm can't ever republish under the right tag.
+      - name: Verify tag matches package.json
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION="$(node -p "require('./packages/managed-auth-react/package.json').version")"
+          echo "Tag version:        $TAG_VERSION"
+          echo "package.json version: $PKG_VERSION"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $PKG_VERSION"
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Build package
+        run: bun run --filter '@onkernel/managed-auth-react' build
+
+      # The package's `files: ["dist", "README.md", "LICENSE"]` references
+      # a LICENSE that lives at the repo root, not in the package directory.
+      # Copy it in before publishing so npm includes it in the tarball.
+      - name: Copy LICENSE into package
+        run: cp LICENSE packages/managed-auth-react/LICENSE
+
+      - name: Publish to npm
+        working-directory: packages/managed-auth-react
+        run: npm publish --provenance --access public
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Mark prerelease for any tag that includes a hyphen (alpha, beta, rc).
+          PRERELEASE_FLAG=""
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            $PRERELEASE_FLAG

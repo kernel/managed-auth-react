@@ -1,6 +1,9 @@
 import { useSlot } from "../appearance/context";
 import { useLocalization } from "../localization/context";
-import { extractDomainName, extractPrimaryDomainLabel } from "../lib/profile-name";
+import {
+  extractDomainName,
+  extractPrimaryDomainLabel,
+} from "../lib/profile-name";
 import type { AppearanceLayout } from "../appearance/types";
 import { Button } from "./primitives/Button";
 import { SiteIcon } from "./SiteIcon";
@@ -24,7 +27,8 @@ export function StepPrime({
 
   const siteName = extractDomainName(targetDomain);
   const primaryLabel = extractPrimaryDomainLabel(siteName);
-  const displayName = primaryLabel.charAt(0).toUpperCase() + primaryLabel.slice(1);
+  const displayName =
+    primaryLabel.charAt(0).toUpperCase() + primaryLabel.slice(1);
 
   const showSecurityCard = layout?.showSecurityCard !== false;
   const showLegalText = layout?.showLegalText !== false;

@@ -28,7 +28,8 @@ const ERROR_DISPLAY: Record<string, { title: string; description: string }> = {
   },
   bot_detected: {
     title: "Verification required",
-    description: "This website detected automated access and blocked the login.",
+    description:
+      "This website detected automated access and blocked the login.",
   },
   captcha_blocked: {
     title: "Verification required",

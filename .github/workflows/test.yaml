@@ -1,0 +1,42 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Format check
+        run: bun run format:check
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Build package
+        run: bun run --filter '@onkernel/managed-auth-react' build
+
+      # Dry-run npm pack so we catch missing files / bad exports BEFORE a
+      # tagged release tries to publish. Exits non-zero if e.g. dist/ is
+      # missing from `files` or an export points at a non-existent path.
+      - name: Verify publishable package
+        working-directory: packages/managed-auth-react
+        run: npm pack --dry-run

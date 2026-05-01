@@ -13,10 +13,7 @@ import { ExternalActionWaiting } from "./components/ExternalActionWaiting";
 import { useLocalization } from "./localization/context";
 import type { Appearance } from "./appearance/types";
 import type { Localization } from "./localization/types";
-import type {
-  AuthErrorPayload,
-  AuthSuccessPayload,
-} from "./lib/types";
+import type { AuthErrorPayload, AuthSuccessPayload } from "./lib/types";
 import type { ApiClientOptions } from "./lib/api";
 
 export interface KernelManagedAuthProps extends ApiClientOptions {
@@ -101,15 +98,23 @@ function KernelManagedAuthInner({
   }
 
   if (uiState === "discovering") {
-    return <LoadingState message={l.discoveringMessage} variant="discovering" />;
+    return (
+      <LoadingState message={l.discoveringMessage} variant="discovering" />
+    );
   }
 
   if (uiState === "submitting") {
-    return <LoadingState message={l.submittingMessage} variant="authenticating" />;
+    return (
+      <LoadingState message={l.submittingMessage} variant="authenticating" />
+    );
   }
 
   if (uiState === "awaiting_external_action") {
-    return <ExternalActionWaiting message={state?.external_action_message ?? undefined} />;
+    return (
+      <ExternalActionWaiting
+        message={state?.external_action_message ?? undefined}
+      />
+    );
   }
 
   if (uiState === "success") {
@@ -125,10 +130,7 @@ function KernelManagedAuthInner({
       <StepError
         targetDomain={targetDomain}
         errorMessage={
-          initError ||
-          state?.error_message ||
-          state?.website_error ||
-          undefined
+          initError || state?.error_message || state?.website_error || undefined
         }
         errorCode={state?.error_code ?? undefined}
       />

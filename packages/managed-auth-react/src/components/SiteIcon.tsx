@@ -12,7 +12,9 @@ export function SiteIcon({ siteName, tone = "normal" }: SiteIconProps) {
     "siteIcon",
     tone === "muted" ? "kma-site-icon kma-site-icon--muted" : "kma-site-icon",
   );
-  const initials = extractPrimaryDomainLabel(siteName).slice(0, 2).toUpperCase();
+  const initials = extractPrimaryDomainLabel(siteName)
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <div {...slotProps}>

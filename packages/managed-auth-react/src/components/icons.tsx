@@ -2,7 +2,10 @@ import type { SVGProps } from "react";
 
 type IconProps = SVGProps<SVGSVGElement>;
 
-function Icon({ children, ...rest }: IconProps & { children: React.ReactNode }) {
+function Icon({
+  children,
+  ...rest
+}: IconProps & { children: React.ReactNode }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -178,12 +181,7 @@ export const RepeatIcon = (p: IconProps) => (
 );
 
 export const SpinnerIcon = (p: IconProps) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    aria-hidden="true"
-    {...p}
-  >
+  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...p}>
     <circle
       cx="12"
       cy="12"

@@ -43,11 +43,14 @@ export async function exchangeHandoffCode(
   options?: ApiClientOptions,
 ): Promise<string> {
   const f = getFetch(options);
-  const res = await f(`${getBaseUrl(options)}/auth/connections/${id}/exchange`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code }),
-  });
+  const res = await f(
+    `${getBaseUrl(options)}/auth/connections/${id}/exchange`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    },
+  );
   if (!res.ok) {
     const msg = await parseError(res);
     throw new ManagedAuthApiError(msg, res.status, msg);
@@ -123,7 +126,12 @@ export function submitSSOButton(
   selector: string,
   options?: ApiClientOptions,
 ): Promise<void> {
-  return submit(id, jwt, { fields: {}, sso_button_selector: selector }, options);
+  return submit(
+    id,
+    jwt,
+    { fields: {}, sso_button_selector: selector },
+    options,
+  );
 }
 
 export function submitMFASelection(

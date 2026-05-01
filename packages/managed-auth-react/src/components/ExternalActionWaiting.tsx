@@ -13,12 +13,7 @@ export function ExternalActionWaiting({ message }: ExternalActionWaitingProps) {
     <div className="kma-step kma-step--center kma-external-action">
       <div className="kma-step__icon-wrap">
         <div className="kma-external-action__cluster">
-          <div
-            {...slot(
-              "externalActionIcon",
-              "kma-external-action__primary",
-            )}
-          >
+          <div {...slot("externalActionIcon", "kma-external-action__primary")}>
             <SmartphoneIcon className="kma-external-action__primary-icon" />
           </div>
           <span className="kma-external-action__badge kma-external-action__badge--key">
@@ -39,8 +34,14 @@ export function ExternalActionWaiting({ message }: ExternalActionWaitingProps) {
 
       <div className="kma-bouncing-dots" aria-hidden="true">
         <span className="kma-bouncing-dot" style={{ animationDelay: "0ms" }} />
-        <span className="kma-bouncing-dot" style={{ animationDelay: "150ms" }} />
-        <span className="kma-bouncing-dot" style={{ animationDelay: "300ms" }} />
+        <span
+          className="kma-bouncing-dot"
+          style={{ animationDelay: "150ms" }}
+        />
+        <span
+          className="kma-bouncing-dot"
+          style={{ animationDelay: "300ms" }}
+        />
       </div>
 
       <p className="kma-loading-hint">{l.externalActionWaiting}</p>

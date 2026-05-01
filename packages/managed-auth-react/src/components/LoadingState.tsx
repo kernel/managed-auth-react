@@ -28,7 +28,10 @@ const AUTH_ICONS: Array<(props: { className?: string }) => ReactNode> = [
 ];
 const STEP_INTERVAL_MS = 6000;
 
-export function LoadingState({ message, variant = "discovering" }: LoadingStateProps) {
+export function LoadingState({
+  message,
+  variant = "discovering",
+}: LoadingStateProps) {
   const slot = useSlot();
   const l = useLocalization();
   const [currentStep, setCurrentStep] = useState(0);

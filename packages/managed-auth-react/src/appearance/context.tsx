@@ -13,19 +13,28 @@ interface AppearanceContextValue {
   elements: AppearanceElements;
 }
 
-const AppearanceContext = createContext<AppearanceContextValue>({ elements: {} });
+const AppearanceContext = createContext<AppearanceContextValue>({
+  elements: {},
+});
 
 interface AppearanceProviderProps {
   appearance?: Appearance;
   children: ReactNode;
 }
 
-export function AppearanceProvider({ appearance, children }: AppearanceProviderProps) {
+export function AppearanceProvider({
+  appearance,
+  children,
+}: AppearanceProviderProps) {
   const value = useMemo<AppearanceContextValue>(
     () => ({ elements: appearance?.elements ?? {} }),
     [appearance?.elements],
   );
-  return <AppearanceContext.Provider value={value}>{children}</AppearanceContext.Provider>;
+  return (
+    <AppearanceContext.Provider value={value}>
+      {children}
+    </AppearanceContext.Provider>
+  );
 }
 
 function normalizeElement(value: ElementValue | undefined): {

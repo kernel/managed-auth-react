@@ -177,7 +177,11 @@ export function useManagedAuthSession(
     let cancelled = false;
     (async () => {
       try {
-        const token = await exchangeHandoffCode(sessionId, handoffCode, options);
+        const token = await exchangeHandoffCode(
+          sessionId,
+          handoffCode,
+          options,
+        );
         if (cancelled) return;
         setJwt(token);
         // Fetch initial state + derive UI
@@ -185,7 +189,11 @@ export function useManagedAuthSession(
         if (cancelled) return;
         setState(initial);
         const derived = deriveUIState(initial);
-        if (derived === "success" || derived === "expired" || derived === "error") {
+        if (
+          derived === "success" ||
+          derived === "expired" ||
+          derived === "error"
+        ) {
           setUIState(derived);
           if (derived === "success" && !callbackFiredRef.current.success) {
             callbackFiredRef.current.success = true;

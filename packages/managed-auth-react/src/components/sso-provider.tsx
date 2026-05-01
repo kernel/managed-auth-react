@@ -21,9 +21,15 @@ export function getSSOProviderInfo(provider: string): SSOProviderInfo {
   if (p.includes("github"))
     return { label: "GitHub", icon: <GitHubMark className="kma-sso-icon" /> };
   if (p.includes("microsoft") || p.includes("azure"))
-    return { label: "Microsoft", icon: <MicrosoftMark className="kma-sso-icon" /> };
+    return {
+      label: "Microsoft",
+      icon: <MicrosoftMark className="kma-sso-icon" />,
+    };
   if (p.includes("facebook"))
-    return { label: "Facebook", icon: <FacebookMark className="kma-sso-icon" /> };
+    return {
+      label: "Facebook",
+      icon: <FacebookMark className="kma-sso-icon" />,
+    };
   if (p.includes("apple"))
     return { label: "Apple", icon: <AppleMark className="kma-sso-icon" /> };
   if (p.includes("saml") || p.includes("sso"))

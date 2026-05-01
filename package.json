@@ -12,9 +12,8 @@
     "lint": "bun run --filter '*' lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,css}\"",
-    "changeset": "./node_modules/.bin/changeset",
-    "version-packages": "./node_modules/.bin/changeset version",
-    "release": "bun run --filter '@onkernel/managed-auth-react' build && cp LICENSE packages/managed-auth-react/LICENSE && ./node_modules/.bin/changeset publish"
+    "changeset": "npx changeset",
+    "version-packages": "npx changeset version"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -64,13 +64,24 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # Build outside the changesets/action so the action's `publish`
+      # command stays a single npm call, matching the shadcn/ui pattern.
+      - name: Build package
+        run: bun run --filter '@onkernel/managed-auth-react' build
+
+      # The package's `files: ["dist", "README.md", "LICENSE"]` references
+      # a LICENSE that lives at the repo root, not in the package directory.
+      - name: Copy LICENSE into package
+        run: cp LICENSE packages/managed-auth-react/LICENSE
+
       - name: Create release PR or publish
         uses: changesets/action@v1
         with:
-          # Runs when there are no pending .changeset/*.md files —
-          # i.e. immediately after the Version Packages PR is merged.
-          publish: bun run release
-          # PR title for the bot's open Version Packages PR.
+          # Bun's script runner doesn't surface node_modules/.bin/changeset
+          # on PATH consistently inside chained `&&` commands, so we use
+          # `npx` here — same pattern shadcn/ui uses with pnpm. Works
+          # because Node is already on the runner for the npm OIDC step.
+          publish: npx changeset publish
           title: "chore: version packages"
           commit: "chore: version packages"
         env:

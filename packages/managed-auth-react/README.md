@@ -9,27 +9,98 @@ bun add @onkernel/managed-auth-react
 
 ## Quick start
 
+### 1. On the backend, create a connection and start a login
+
+```ts
+import Kernel from "@onkernel/sdk";
+
+const kernel = new Kernel({ apiKey: process.env.KERNEL_API_KEY });
+
+// Per profile + domain combination. Returns 409 if one already exists.
+const connection = await kernel.auth.connections.create({
+  domain: "netflix.com",
+  profile_name: "user-123",
+});
+
+// Starts a login flow and returns the URL the end user should be sent to.
+// `hosted_url` is shaped like `https://<your-domain>/<your-route>/{id}?code=<handoff>`
+// based on how your Kernel project is configured.
+const { hosted_url } = await kernel.auth.connections.login(connection.id);
+```
+
+Redirect (or pop open) the user to `hosted_url`.
+
+### 2. On the frontend, render the component on the route the URL points at
+
+The route just needs to surface the connection `id` (path param) and the `code` (query param) and hand them to the component. In Next.js App Router that looks like:
+
 ```tsx
+// app/login/[id]/page.tsx
+"use client";
+
+import { useSearchParams } from "next/navigation";
+import { use } from "react";
 import { KernelManagedAuth } from "@onkernel/managed-auth-react";
 import "@onkernel/managed-auth-react/styles.css";
 
-export default function LoginPage() {
+export default function LoginPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
+  const code = useSearchParams().get("code") ?? "";
+
   return (
     <KernelManagedAuth
-      sessionId={sessionId}
-      handoffCode={handoffCode}
+      sessionId={id}
+      handoffCode={code}
       onSuccess={({ profileName, domain }) => {
         window.location.href = `/connected?profile=${profileName}`;
       }}
-      onError={({ code, message }) => {
-        console.error(code, message);
+      onError={({ code: errCode, message }) => {
+        console.error(errCode, message);
       }}
     />
   );
 }
 ```
 
-`sessionId` and `handoffCode` come from your backend's call to `POST /auth/connections/{id}/login` (or `kernel.auth.connections.login(id)` via `@onkernel/sdk`). The response includes a `hosted_url`; pass the connection ID and the single-use `code` query parameter from that URL into the component.
+The component is client-only — `"use client"` is required in any RSC framework (Next.js App Router, Remix, etc.).
+
+## Backend / API connectivity
+
+By default the component talks directly to `https://api.onkernel.com`. That works out of the box; nothing else to configure.
+
+If you'd rather keep all auth traffic same-origin (cookies, CSP, observability), set `baseUrl=""` and proxy the three endpoints the package hits through your own framework:
+
+```ts
+// next.config.ts
+export default {
+  async rewrites() {
+    return [
+      {
+        source: "/auth/connections/:id/exchange",
+        destination: `${process.env.KERNEL_BASE_URL}/auth/connections/:id/exchange`,
+      },
+      {
+        source: "/auth/connections/:id",
+        destination: `${process.env.KERNEL_BASE_URL}/auth/connections/:id`,
+      },
+      {
+        source: "/auth/connections/:id/submit",
+        destination: `${process.env.KERNEL_BASE_URL}/auth/connections/:id/submit`,
+      },
+    ];
+  },
+};
+```
+
+```tsx
+<KernelManagedAuth sessionId={id} handoffCode={code} baseUrl="" {...rest} />
+```
+
+The full reference integration (rewrites + client) lives at [`kernel/managed-auth-hosted-ui`](https://github.com/kernel/managed-auth-hosted-ui).
 
 ## Styling
 
@@ -161,16 +232,16 @@ See [`Localization`](./src/localization/types.ts) for every supported key.
 
 ### `<KernelManagedAuth />` props
 
-| Prop           | Type                              | Required | Description                                         |
-| -------------- | --------------------------------- | -------- | --------------------------------------------------- |
-| `sessionId`    | `string`                          | yes      | Managed auth connection ID from your backend.       |
-| `handoffCode`  | `string`                          | yes      | Single-use handoff code, exchanged for a JWT.       |
-| `appearance`   | `Appearance`                      | no       | Styling — variables, elements, layout, theme.       |
-| `localization` | `Localization`                    | no       | Partial string overrides.                           |
-| `onSuccess`    | `(p: AuthSuccessPayload) => void` | no       | Fires on `SUCCESS`.                                 |
-| `onError`      | `(p: AuthErrorPayload) => void`   | no       | Fires on `FAILED`, `CANCELED`, `EXPIRED`.           |
-| `baseUrl`      | `string`                          | no       | Override the Kernel API base URL (for testing).     |
-| `fetch`        | `typeof fetch`                    | no       | Inject a custom fetch (for SSR or instrumentation). |
+| Prop           | Type                              | Required | Default                      | Description                                                                              |
+| -------------- | --------------------------------- | -------- | ---------------------------- | ---------------------------------------------------------------------------------------- |
+| `sessionId`    | `string`                          | yes      | —                            | Managed auth connection ID from your backend.                                            |
+| `handoffCode`  | `string`                          | yes      | —                            | Single-use handoff code, exchanged for a JWT.                                            |
+| `appearance`   | `Appearance`                      | no       | —                            | Styling — variables, elements, layout, theme.                                            |
+| `localization` | `Localization`                    | no       | English                      | Partial string overrides.                                                                |
+| `onSuccess`    | `(p: AuthSuccessPayload) => void` | no       | —                            | Fires on `SUCCESS`. Payload: `{ profileName: string; domain: string }`.                  |
+| `onError`      | `(p: AuthErrorPayload) => void`   | no       | —                            | Fires on `FAILED`, `CANCELED`, `EXPIRED`. Payload: `{ code?: string; message: string }`. |
+| `baseUrl`      | `string`                          | no       | `"https://api.onkernel.com"` | Override the Kernel API origin. Use `""` for same-origin proxying via your own rewrites. |
+| `fetch`        | `typeof fetch`                    | no       | `globalThis.fetch`           | Inject a custom fetch (for SSR or instrumentation).                                      |
 
 ### Headless step components
 

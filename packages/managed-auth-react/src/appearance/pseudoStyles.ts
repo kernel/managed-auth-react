@@ -143,10 +143,7 @@ export function compilePseudoStyle(style: ElementStyle | undefined): {
   // For belt-and-suspenders, every declaration is emitted with the same
   // class selector and inherits its specificity directly.
   const rules = pseudoBlocks
-    .map(
-      ([sel, decls]) =>
-        `.${className}${sel}{${styleObjectToCss(decls)}}`,
-    )
+    .map(([sel, decls]) => `.${className}${sel}{${styleObjectToCss(decls)}}`)
     .join("");
 
   injectRules(className, rules);

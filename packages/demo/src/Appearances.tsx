@@ -722,8 +722,10 @@ const variants: VariantSpec[] = [
       submittingButton: "signing in...",
       ssoButtonLabel: (provider) => `continue with ${provider.toLowerCase()}`,
       orDivider: "or",
+      // Lowercased verbatim from the canonical main-branch copy. Do NOT
+      // paraphrase the security claim — the wording is policy, not style.
       credentialSafetyNotice:
-        "credentials are encrypted client-side. never shared with kernel or any llm.",
+        "your credentials are encrypted and sent directly from your browser. they are never shared with anyone or any llm.",
     },
     code: `appearance={{
   theme: "light",

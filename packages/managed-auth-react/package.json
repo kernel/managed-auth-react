@@ -1,6 +1,6 @@
 {
   "name": "@onkernel/managed-auth-react",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "React component library for Kernel managed auth — one-component drop-in with a Clerk-style appearance API",
   "license": "MIT",
   "author": "Kernel Technologies, Inc.",
@@ -13,17 +13,9 @@
   "bugs": {
     "url": "https://github.com/kernel/managed-auth-react/issues"
   },
-  "keywords": [
-    "kernel",
-    "auth",
-    "react",
-    "managed-auth",
-    "authentication"
-  ],
+  "keywords": ["kernel", "auth", "react", "managed-auth", "authentication"],
   "type": "module",
-  "sideEffects": [
-    "**/*.css"
-  ],
+  "sideEffects": ["**/*.css"],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -36,11 +28,7 @@
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
+  "files": ["dist", "README.md", "LICENSE"],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",

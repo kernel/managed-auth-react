@@ -222,7 +222,9 @@ export function States() {
 const pickerStyles: Record<string, React.CSSProperties> = {
   wrapper: {
     position: "fixed",
-    top: 16,
+    // Sits just below the demo's top nav bar (which is sticky with z-index
+    // 100). 16px gap keeps it from butting against the nav border.
+    top: "calc(var(--demo-nav-height) + 16px)",
     right: 16,
     zIndex: 50,
     background: "var(--card)",

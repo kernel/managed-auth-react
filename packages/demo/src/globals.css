@@ -13,6 +13,9 @@
   --muted-foreground: #6b7280;
   --border: #e5e7eb;
   --accent: #6366f1;
+  /* Pinned in JSX too — used by sticky elements (e.g. Appearances StepPicker)
+     so they don't slide under the top tab bar. */
+  --demo-nav-height: 49px;
 }
 
 @media (prefers-color-scheme: dark) {

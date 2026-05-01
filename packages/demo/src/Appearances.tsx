@@ -815,7 +815,8 @@ function StepPicker({
     <div
       style={{
         position: "sticky",
-        top: 0,
+        // Park just under the demo's top nav bar so we don't slide under it.
+        top: "var(--demo-nav-height)",
         zIndex: 10,
         background: "var(--background)",
         borderBottom: "1px solid var(--border)",

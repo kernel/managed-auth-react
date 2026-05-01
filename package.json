@@ -12,9 +12,9 @@
     "lint": "bun run --filter '*' lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,css}\"",
-    "changeset": "changeset",
-    "version-packages": "changeset version",
-    "release": "bun run --filter '@onkernel/managed-auth-react' build && cp LICENSE packages/managed-auth-react/LICENSE && changeset publish"
+    "changeset": "bunx changeset",
+    "version-packages": "bunx changeset version",
+    "release": "bun run --filter '@onkernel/managed-auth-react' build && cp LICENSE packages/managed-auth-react/LICENSE && bunx changeset publish"
   },
   "devDependencies": {
     "@types/node": "^20",

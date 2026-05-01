@@ -19,10 +19,10 @@ name: Release
 # bypasses. Releases go through the normal PR + status-check + approval
 # flow like any other change.
 #
-# `--provenance` is intentionally omitted from the publish: npm requires
-# a public source repository for provenance attestations and this repo
-# is `internal`-visibility. Re-add via .changeset/config.json once the
-# repo flips public.
+# Publish includes npm provenance (NPM_CONFIG_PROVENANCE=true). Provenance
+# attestations require the source repo to be public on GitHub, which this
+# repo is, and they prove the artifact was built from this commit by this
+# workflow — no separate signing key needed.
 
 on:
   push:
@@ -88,3 +88,9 @@ jobs:
           commit: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # changeset publish shells out to `npm publish` per package; npm
+          # picks up NPM_CONFIG_PROVENANCE from the env and adds a SLSA
+          # build provenance attestation to each tarball. Combined with our
+          # OIDC trusted publisher config on npm this gives us tokenless,
+          # signed, attested releases.
+          NPM_CONFIG_PROVENANCE: "true"

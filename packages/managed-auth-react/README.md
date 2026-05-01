@@ -29,7 +29,7 @@ export default function LoginPage() {
 }
 ```
 
-`sessionId` and `handoffCode` come from your backend's call to `POST /auth/connections/{id}/login` (or `client.auth.connections.login(id)` via `@onkernel/sdk`). The response includes a `hosted_url`; pass the connection ID and the single-use `code` query parameter from that URL into the component.
+`sessionId` and `handoffCode` come from your backend's call to `POST /auth/connections/{id}/login` (or `kernel.auth.connections.login(id)` via `@onkernel/sdk`). The response includes a `hosted_url`; pass the connection ID and the single-use `code` query parameter from that URL into the component.
 
 ## Styling
 

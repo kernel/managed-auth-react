@@ -2,7 +2,9 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { useSlot } from "../appearance/context";
 import { useLocalization } from "../localization/context";
 import { extractDomainName } from "../lib/profile-name";
-import type { AppearanceLayout } from "../appearance/types";
+import type {
+  AppearanceLayout,
+} from "../appearance/types";
 import type {
   DiscoveredField,
   MFAOption,
@@ -89,8 +91,7 @@ function getAutocomplete(field: DiscoveredField): string | undefined {
     case "totp":
       return "one-time-code";
     default:
-      if (name.includes("user") || name.includes("identifier"))
-        return "username";
+      if (name.includes("user") || name.includes("identifier")) return "username";
       return undefined;
   }
 }
@@ -168,9 +169,7 @@ export function UnifiedAuthForm({
               {option.label}
             </div>
             {option.description && (
-              <div
-                {...slot("signInOptionDescription", "kma-option__description")}
-              >
+              <div {...slot("signInOptionDescription", "kma-option__description")}>
                 {option.description}
               </div>
             )}
@@ -189,7 +188,8 @@ export function UnifiedAuthForm({
   // "switch" MFA options ("Use another method") are fallbacks — always
   // render them last so the primary verification methods come first.
   const sortedMFAOptions = [...mfaOptions].sort(
-    (a, b) => (a.type === "switch" ? 1 : 0) - (b.type === "switch" ? 1 : 0),
+    (a, b) =>
+      (a.type === "switch" ? 1 : 0) - (b.type === "switch" ? 1 : 0),
   );
 
   const renderMFAOptions = () => (
@@ -203,10 +203,7 @@ export function UnifiedAuthForm({
           onClick={() => onMFASelect(option.type)}
           disabled={isLoading}
         >
-          <span
-            {...slot("mfaOptionIcon", "kma-option__icon")}
-            aria-hidden="true"
-          >
+          <span {...slot("mfaOptionIcon", "kma-option__icon")} aria-hidden="true">
             {getMFAIcon(option.type)}
           </span>
           <div className="kma-option__text">
@@ -254,10 +251,7 @@ export function UnifiedAuthForm({
                 autoComplete={getAutocomplete(field)}
                 value={formData[field.name] || ""}
                 onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    [field.name]: e.target.value,
-                  }))
+                  setFormData((prev) => ({ ...prev, [field.name]: e.target.value }))
                 }
                 className="kma-input--with-toggle"
               />
@@ -270,9 +264,7 @@ export function UnifiedAuthForm({
                   }))
                 }
                 tabIndex={-1}
-                aria-label={
-                  showPassword[field.name] ? l.passwordHide : l.passwordShow
-                }
+                aria-label={showPassword[field.name] ? l.passwordHide : l.passwordShow}
                 {...slot("passwordToggle", "kma-password-toggle")}
               >
                 {showPassword[field.name] ? <EyeOffIcon /> : <EyeIcon />}
@@ -288,10 +280,7 @@ export function UnifiedAuthForm({
               autoComplete={getAutocomplete(field)}
               value={formData[field.name] || ""}
               onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  [field.name]: e.target.value,
-                }))
+                setFormData((prev) => ({ ...prev, [field.name]: e.target.value }))
               }
             />
           )}
@@ -342,8 +331,7 @@ export function UnifiedAuthForm({
   );
 
   const sections: ReactNode[] = [];
-  if (hasSignIn)
-    sections.push(<div key="sign-in">{renderSignInOptions()}</div>);
+  if (hasSignIn) sections.push(<div key="sign-in">{renderSignInOptions()}</div>);
   if (hasMFA) sections.push(<div key="mfa">{renderMFAOptions()}</div>);
   if (socialsTop && hasSSO) sections.push(<div key="sso">{renderSSO()}</div>);
   if (hasFields) sections.push(<div key="fields">{renderFields()}</div>);

@@ -75,7 +75,7 @@ export interface AppearanceElements {
   passwordToggle?: ElementValue;
   /** All buttons — base. */
   button?: ElementValue;
-  /** Primary action button (e.g. "Continue", "Log in"). */
+  /** Primary action button (e.g. "Continue", "Sign in"). */
   buttonPrimary?: ElementValue;
   /** Secondary / outline button (e.g. SSO, MFA options). */
   buttonSecondary?: ElementValue;
@@ -83,7 +83,7 @@ export interface AppearanceElements {
   divider?: ElementValue;
   dividerLine?: ElementValue;
   dividerText?: ElementValue;
-  /** SSO button (e.g. "Log in with Google"). */
+  /** SSO button (e.g. "Sign in with Google"). */
   ssoButton?: ElementValue;
   ssoButtonIcon?: ElementValue;
   ssoButtonLabel?: ElementValue;

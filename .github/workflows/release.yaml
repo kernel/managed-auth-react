@@ -84,6 +84,10 @@ jobs:
       # Stable releases get the default `latest` tag; prereleases land
       # under `alpha` so `npm install @onkernel/managed-auth-react` keeps
       # picking up stable versions only.
+      #
+      # `--provenance` is intentionally omitted: npm requires a public
+      # source repository for provenance attestations and this repo is
+      # `internal`. Re-add `--provenance` if the repo goes public.
       - name: Publish to npm
         working-directory: packages/managed-auth-react
         run: |
@@ -91,7 +95,7 @@ jobs:
           if [[ "$GITHUB_REF_NAME" == *-* ]]; then
             NPM_TAG="alpha"
           fi
-          npm publish --provenance --access public --tag "$NPM_TAG"
+          npm publish --access public --tag "$NPM_TAG"
 
       - name: Create GitHub release
         env:

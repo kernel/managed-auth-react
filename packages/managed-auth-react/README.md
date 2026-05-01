@@ -262,7 +262,7 @@ import {
 } from "@onkernel/managed-auth-react";
 ```
 
-Wrap them in `<AppearanceProvider>` and `<LocalizationProvider>` to inherit the same styling/localization plumbing as the all-in-one component. See `app/test-new/` in the [hosted-ui repo](https://github.com/kernel/managed-auth-hosted-ui) for a working harness.
+Wrap them in `<AppearanceProvider>` and `<LocalizationProvider>` to inherit the same styling/localization plumbing as the all-in-one component. See [`packages/demo`](../demo) in this repo for a worked harness driving every step from a state picker.
 
 ### Element keys
 

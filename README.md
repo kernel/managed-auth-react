@@ -5,7 +5,7 @@ Monorepo for [`@onkernel/managed-auth-react`](./packages/managed-auth-react) —
 ## Packages
 
 - [`@onkernel/managed-auth-react`](./packages/managed-auth-react) — the published component library.
-- [`@onkernel/managed-auth-react-demo`](./packages/demo) — private Vite app for local visual testing with mocked API responses.
+- [`@onkernel/managed-auth-react-demo`](./packages/demo) — local-only Vite app with two tabs: every UI state in the package, and eight worked appearance variants. Runs without a Kernel account.
 
 ## Development
 
@@ -14,6 +14,13 @@ bun install
 bun run --filter '@onkernel/managed-auth-react' build
 bun run --filter '@onkernel/managed-auth-react' typecheck
 bun run --filter '@onkernel/managed-auth-react-demo' dev
+# → http://localhost:5173 (auto-opens; #states or #appearances tabs)
+```
+
+For live iteration on the package itself, run the package in watch mode in another terminal — Vite picks up the rebuilt `dist/` automatically:
+
+```bash
+bun run --filter '@onkernel/managed-auth-react' dev
 ```
 
 ### Linking into a consumer (e.g. managed-auth-hosted-ui)

@@ -1,6 +1,6 @@
 {
   "name": "@onkernel/managed-auth-react",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "description": "React component library for Kernel managed auth — one-component drop-in with a Clerk-style appearance API",
   "license": "MIT",
   "author": "Kernel Technologies, Inc.",

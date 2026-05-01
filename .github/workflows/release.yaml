@@ -65,11 +65,14 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Typecheck
-        run: bun run typecheck
-
+      # Build before typecheck so the demo workspace can resolve
+      # `@onkernel/managed-auth-react`'s emitted .d.ts. Same ordering as
+      # test.yaml.
       - name: Build package
         run: bun run --filter '@onkernel/managed-auth-react' build
+
+      - name: Typecheck
+        run: bun run typecheck
 
       # The package's `files: ["dist", "README.md", "LICENSE"]` references
       # a LICENSE that lives at the repo root, not in the package directory.

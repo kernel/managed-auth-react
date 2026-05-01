@@ -77,9 +77,18 @@ jobs:
       - name: Copy LICENSE into package
         run: cp LICENSE packages/managed-auth-react/LICENSE
 
+      # npm requires --tag for any version with a hyphen (alpha/beta/rc).
+      # Stable releases get the default `latest` tag; prereleases land
+      # under `alpha` so `npm install @onkernel/managed-auth-react` keeps
+      # picking up stable versions only.
       - name: Publish to npm
         working-directory: packages/managed-auth-react
-        run: npm publish --provenance --access public
+        run: |
+          NPM_TAG="latest"
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+            NPM_TAG="alpha"
+          fi
+          npm publish --provenance --access public --tag "$NPM_TAG"
 
       - name: Create GitHub release
         env:

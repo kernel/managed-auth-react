@@ -24,9 +24,10 @@ bun run --filter '@onkernel/managed-auth-react-demo' dev
 # In the consumer (one-time): install the package once via tarball/file dep so
 # node_modules/@onkernel/managed-auth-react/ exists.
 
-# In packages/managed-auth-react:
-LINK_TO=../../managed-auth-hosted-ui/node_modules/@onkernel/managed-auth-react bun run dev
-# or use the shorthand for the hosted-ui repo at ../managed-auth-hosted-ui:
+# In packages/managed-auth-react (LINK_TO is resolved relative to the
+# package dir, so 3 levels up lands in the parent of this repo):
+LINK_TO=../../../managed-auth-hosted-ui/node_modules/@onkernel/managed-auth-react bun run dev
+# Shorthand assuming managed-auth-hosted-ui is a sibling of this repo:
 bun run dev:hosted-ui
 ```
 

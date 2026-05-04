@@ -1,0 +1,49 @@
+/*
+ * Demo chrome only — these tokens are scoped to the Netflix-style page
+ * surrounding the auth component. The auth component itself is themed via
+ * the `--kma-*` tokens emitted by `appearance.variables` (see netflixAppearance
+ * in App.tsx).
+ */
+:root {
+  --nflx-red: #e50914;
+  --nflx-red-hover: #f6121d;
+  --nflx-red-deep: #b1060f;
+  --nflx-black: #000000;
+  --nflx-near-black: #141414;
+  --nflx-charcoal: #181818;
+  --nflx-gray: #2f2f2f;
+  --nflx-text: #ffffff;
+  --nflx-text-muted: #b3b3b3;
+  --nflx-text-dim: #808080;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: var(--nflx-black);
+  color: var(--nflx-text);
+  font-family:
+    "Inter",
+    "Netflix Sans",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+}

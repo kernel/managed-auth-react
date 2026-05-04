@@ -1,4 +1,13 @@
-import type { ManagedAuthResponse, MFAType } from "./types";
+import type {
+  DiscoveredField,
+  FlowStatus,
+  FlowStep,
+  ManagedAuthResponse,
+  MFAOption,
+  MFAType,
+  SSOButton,
+  SignInOption,
+} from "./types";
 
 export interface ApiClientOptions {
   baseUrl?: string;
@@ -155,4 +164,127 @@ export function submitSignInOption(
     { fields: {}, sign_in_option_id: signInOptionId },
     options,
   );
+}
+
+export interface ManagedAuthStateEventData {
+  event: "managed_auth_state";
+  timestamp: string;
+  flow_status: FlowStatus;
+  flow_step: FlowStep;
+  flow_type?: "LOGIN" | "REAUTH";
+  discovered_fields?: DiscoveredField[];
+  mfa_options?: MFAOption[];
+  sign_in_options?: SignInOption[];
+  pending_sso_buttons?: SSOButton[];
+  external_action_message?: string;
+  website_error?: string;
+  error_message?: string;
+  error_code?: string;
+  post_login_url?: string;
+  live_view_url?: string;
+  hosted_url?: string;
+}
+
+export interface ManagedAuthStreamHandlers {
+  onState: (event: ManagedAuthStateEventData) => void;
+  onError: (err: ManagedAuthApiError) => void;
+  onClose: () => void;
+}
+
+interface ParsedSSEMessage {
+  event?: string;
+  data: string;
+}
+
+function parseSSEMessage(raw: string): ParsedSSEMessage | null {
+  if (!raw.trim()) return null;
+  let event: string | undefined;
+  const dataLines: string[] = [];
+  for (const line of raw.split("\n")) {
+    if (!line || line.startsWith(":")) continue;
+    const colonIdx = line.indexOf(":");
+    const field = colonIdx === -1 ? line : line.slice(0, colonIdx);
+    let value = colonIdx === -1 ? "" : line.slice(colonIdx + 1);
+    if (value.startsWith(" ")) value = value.slice(1);
+    if (field === "event") event = value;
+    else if (field === "data") dataLines.push(value);
+  }
+  if (dataLines.length === 0) return null;
+  return { event, data: dataLines.join("\n") };
+}
+
+export function streamManagedAuthEvents(
+  id: string,
+  jwt: string,
+  handlers: ManagedAuthStreamHandlers,
+  options?: ApiClientOptions,
+): () => void {
+  const ac = new AbortController();
+  void (async () => {
+    try {
+      const f = getFetch(options);
+      const res = await f(
+        `${getBaseUrl(options)}/auth/connections/${id}/events`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+            Accept: "text/event-stream",
+          },
+          signal: ac.signal,
+        },
+      );
+      if (!res.ok) {
+        const msg = await parseError(res);
+        handlers.onError(new ManagedAuthApiError(msg, res.status, msg));
+        return;
+      }
+      if (!res.body) {
+        handlers.onError(
+          new ManagedAuthApiError("SSE response has no body", 500, ""),
+        );
+        return;
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        let sepIdx: number;
+        while ((sepIdx = buf.indexOf("\n\n")) !== -1) {
+          const raw = buf.slice(0, sepIdx);
+          buf = buf.slice(sepIdx + 2);
+          const msg = parseSSEMessage(raw);
+          if (!msg) continue;
+          if (msg.event === "managed_auth_state") {
+            try {
+              handlers.onState(
+                JSON.parse(msg.data) as ManagedAuthStateEventData,
+              );
+            } catch {
+              /* ignore malformed payload */
+            }
+          } else if (msg.event === "error") {
+            try {
+              const data = JSON.parse(msg.data) as {
+                error?: { code?: string; message?: string };
+              };
+              const message = data.error?.message ?? "Stream error";
+              handlers.onError(new ManagedAuthApiError(message, 500, message));
+            } catch {
+              /* ignore malformed payload */
+            }
+          }
+        }
+      }
+      handlers.onClose();
+    } catch (err) {
+      if ((err as { name?: string })?.name === "AbortError") return;
+      const message = err instanceof Error ? err.message : "Stream failed";
+      handlers.onError(new ManagedAuthApiError(message, 0, message));
+    }
+  })();
+  return () => ac.abort();
 }

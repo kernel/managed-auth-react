@@ -267,15 +267,18 @@ export function streamManagedAuthEvents(
               /* ignore malformed payload */
             }
           } else if (msg.event === "error") {
+            let message = "Stream error";
             try {
               const data = JSON.parse(msg.data) as {
                 error?: { code?: string; message?: string };
               };
-              const message = data.error?.message ?? "Stream error";
-              handlers.onError(new ManagedAuthApiError(message, 500, message));
+              if (data.error?.message) message = data.error.message;
             } catch {
-              /* ignore malformed payload */
+              /* fall through with default message */
             }
+            handlers.onError(new ManagedAuthApiError(message, 500, message));
+            ac.abort();
+            return;
           }
         }
       }

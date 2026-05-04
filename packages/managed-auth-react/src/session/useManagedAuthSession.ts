@@ -215,13 +215,7 @@ export function useManagedAuthSession(
         options,
       );
     },
-    [
-      disconnectStream,
-      fireErrorOnce,
-      fireSuccessOnce,
-      options,
-      sessionId,
-    ],
+    [disconnectStream, fireErrorOnce, fireSuccessOnce, options, sessionId],
   );
 
   useEffect(() => {

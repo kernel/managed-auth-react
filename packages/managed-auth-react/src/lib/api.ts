@@ -260,7 +260,9 @@ export function streamManagedAuthEvents(
           if (!msg) continue;
           if (msg.event === "managed_auth_state") {
             try {
-              handlers.onState(JSON.parse(msg.data) as ManagedAuthStateEventData);
+              handlers.onState(
+                JSON.parse(msg.data) as ManagedAuthStateEventData,
+              );
             } catch {
               /* ignore malformed payload */
             }

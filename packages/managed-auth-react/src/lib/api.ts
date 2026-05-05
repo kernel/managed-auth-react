@@ -16,11 +16,13 @@ const DEFAULT_BASE_URL = "https://api.onkernel.com";
 export class ManagedAuthApiError extends Error {
   public readonly status: number;
   public readonly body: string;
-  constructor(message: string, status: number, body: string) {
+  public readonly fatal: boolean;
+  constructor(message: string, status: number, body: string, fatal = false) {
     super(message);
     this.name = "ManagedAuthApiError";
     this.status = status;
     this.body = body;
+    this.fatal = fatal;
   }
 }
 
@@ -178,7 +180,7 @@ function parseSSEMessage(raw: string): ParsedSSEMessage | null {
   if (!raw.trim()) return null;
   let event: string | undefined;
   const dataLines: string[] = [];
-  for (const line of raw.split("\n")) {
+  for (const line of raw.split(/\r\n|\r|\n/)) {
     if (!line || line.startsWith(":")) continue;
     const colonIdx = line.indexOf(":");
     const field = colonIdx === -1 ? line : line.slice(0, colonIdx);
@@ -226,14 +228,18 @@ export function streamManagedAuthEvents(
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buf = "";
+      // SSE message separator: blank line. Per spec, line endings can be
+      // \n, \r\n, or \r — so the separator can be \n\n, \r\n\r\n, or \r\r.
+      const SEPARATOR_RE = /\r\n\r\n|\r\r|\n\n/;
       for (;;) {
         const { value, done } = await reader.read();
         if (done) break;
         buf += decoder.decode(value, { stream: true });
-        let sepIdx: number;
-        while ((sepIdx = buf.indexOf("\n\n")) !== -1) {
-          const raw = buf.slice(0, sepIdx);
-          buf = buf.slice(sepIdx + 2);
+        for (;;) {
+          const match = SEPARATOR_RE.exec(buf);
+          if (!match) break;
+          const raw = buf.slice(0, match.index);
+          buf = buf.slice(match.index + match[0].length);
           const msg = parseSSEMessage(raw);
           if (!msg) continue;
           if (msg.event === "managed_auth_state") {
@@ -254,7 +260,9 @@ export function streamManagedAuthEvents(
             } catch {
               /* fall through with default message */
             }
-            handlers.onError(new ManagedAuthApiError(message, 500, message));
+            handlers.onError(
+              new ManagedAuthApiError(message, 500, message, true),
+            );
             ac.abort();
             return;
           }

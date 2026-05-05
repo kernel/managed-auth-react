@@ -187,8 +187,51 @@ export function useManagedAuthSession(
         );
         reconnectTimerRef.current = setTimeout(() => {
           reconnectTimerRef.current = null;
-          connectStream(token);
+          void resyncAndConnect(token);
         }, delay);
+      };
+
+      // SSE only emits future deltas. After a drop, resync via GET so we don't
+      // miss state changes that happened during the disconnect window before
+      // resubscribing to the stream.
+      const resyncAndConnect = async (t: string) => {
+        if (terminalRef.current) return;
+        try {
+          const fresh = await retrieveManagedAuth(sessionId, t, options);
+          if (terminalRef.current) return;
+          stateRef.current = fresh;
+          setState(fresh);
+          const derived = deriveUIState(fresh);
+          setUIState(derived);
+          if (isTerminal(derived)) {
+            terminalRef.current = true;
+            if (derived === "success") {
+              fireSuccessOnce({
+                profileName: fresh.profile_name,
+                domain: fresh.domain,
+              });
+            } else {
+              fireErrorOnce({
+                code: fresh.error_code ?? undefined,
+                message:
+                  fresh.error_message ||
+                  fresh.website_error ||
+                  (derived === "expired" ? "Session expired" : "Login failed"),
+              });
+            }
+            return;
+          }
+          connectStream(t);
+        } catch (err) {
+          const status = (err as { status?: number })?.status;
+          if (status === 401 || status === 410) {
+            terminalRef.current = true;
+            setUIState("expired");
+            fireErrorOnce({ message: "Session expired" });
+            return;
+          }
+          scheduleReconnect();
+        }
       };
 
       disconnectRef.current = streamManagedAuthEvents(
@@ -202,6 +245,12 @@ export function useManagedAuthSession(
               terminalRef.current = true;
               setUIState("expired");
               fireErrorOnce({ message: "Session expired" });
+              return;
+            }
+            if (err.fatal) {
+              terminalRef.current = true;
+              setUIState("error");
+              fireErrorOnce({ message: err.message });
               return;
             }
             scheduleReconnect();

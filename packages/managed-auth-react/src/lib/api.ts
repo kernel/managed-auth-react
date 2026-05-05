@@ -1,13 +1,10 @@
 import type {
-  DiscoveredField,
-  FlowStatus,
-  FlowStep,
   ManagedAuthResponse,
-  MFAOption,
+  ManagedAuthStateEventData,
   MFAType,
-  SSOButton,
-  SignInOption,
 } from "./types";
+
+export type { ManagedAuthStateEventData };
 
 export interface ApiClientOptions {
   baseUrl?: string;
@@ -164,25 +161,6 @@ export function submitSignInOption(
     { fields: {}, sign_in_option_id: signInOptionId },
     options,
   );
-}
-
-export interface ManagedAuthStateEventData {
-  event: "managed_auth_state";
-  timestamp: string;
-  flow_status: FlowStatus;
-  flow_step: FlowStep;
-  flow_type?: "LOGIN" | "REAUTH";
-  discovered_fields?: DiscoveredField[];
-  mfa_options?: MFAOption[];
-  sign_in_options?: SignInOption[];
-  pending_sso_buttons?: SSOButton[];
-  external_action_message?: string;
-  website_error?: string;
-  error_message?: string;
-  error_code?: string;
-  post_login_url?: string;
-  live_view_url?: string;
-  hosted_url?: string;
 }
 
 export interface ManagedAuthStreamHandlers {

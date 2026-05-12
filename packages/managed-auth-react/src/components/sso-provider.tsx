@@ -4,6 +4,7 @@ import {
   BuildingIcon,
   FacebookMark,
   GitHubMark,
+  GitLabMark,
   GoogleMark,
   KeyIcon,
   MicrosoftMark,
@@ -20,6 +21,8 @@ export function getSSOProviderInfo(provider: string): SSOProviderInfo {
     return { label: "Google", icon: <GoogleMark className="kma-sso-icon" /> };
   if (p.includes("github"))
     return { label: "GitHub", icon: <GitHubMark className="kma-sso-icon" /> };
+  if (p.includes("gitlab"))
+    return { label: "GitLab", icon: <GitLabMark className="kma-sso-icon" /> };
   if (p.includes("microsoft") || p.includes("azure"))
     return {
       label: "Microsoft",

@@ -113,6 +113,9 @@ function KernelManagedAuthInner({
     return (
       <ExternalActionWaiting
         message={state?.external_action_message ?? undefined}
+        mfaOptions={state?.mfa_options ?? []}
+        onMFASelect={submitMFA}
+        isLoading={isSubmitting}
       />
     );
   }

@@ -510,6 +510,18 @@
   height: 1.25rem;
 }
 
+.kma-sso-icon--letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--kma-color-muted, #6b7280);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
 /* ---------- Form / Input ---------- */
 
 .kma-form {

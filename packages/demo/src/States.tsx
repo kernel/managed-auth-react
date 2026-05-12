@@ -70,6 +70,7 @@ type StateName =
   | "awaiting_input_full"
   | "awaiting_input_mfa"
   | "awaiting_external_action"
+  | "awaiting_external_action_multi"
   | "submitting"
   | "success"
   | "expired"
@@ -83,6 +84,7 @@ const allStates: StateName[] = [
   "awaiting_input_full",
   "awaiting_input_mfa",
   "awaiting_external_action",
+  "awaiting_external_action_multi",
   "submitting",
   "success",
   "expired",
@@ -169,7 +171,23 @@ export function States() {
         );
       case "awaiting_external_action":
         return (
-          <ExternalActionWaiting message="Check your phone for a push notification" />
+          <ExternalActionWaiting
+            message="Check your phone for a push notification"
+            mfaOptions={[{ type: "switch", label: "Try another way" }]}
+            onMFASelect={() => {}}
+          />
+        );
+      case "awaiting_external_action_multi":
+        return (
+          <ExternalActionWaiting
+            message="Open the Gmail app on Apple iPhone 14 Pro Max and tap Yes on the prompt to verify it's you"
+            mfaOptions={[
+              { type: "totp", label: "Use authenticator app" },
+              { type: "sms", label: "Get a code via SMS" },
+              { type: "switch", label: "Try another way" },
+            ]}
+            onMFASelect={() => {}}
+          />
         );
       case "submitting":
         return (

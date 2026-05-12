@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   AppleMark,
   BuildingIcon,
@@ -44,12 +44,11 @@ function titleCase(provider: string): string {
 }
 
 function CDNProviderIcon({ provider }: { provider: string }) {
-  const [errored, setErrored] = useState(false);
-  useEffect(() => setErrored(false), [provider]);
+  const [erroredSlug, setErroredSlug] = useState<string | null>(null);
   const slug = slugify(provider);
   const letter = provider.trim().charAt(0).toUpperCase() || "?";
 
-  if (!slug || errored) {
+  if (!slug || erroredSlug === slug) {
     return (
       <span className="kma-sso-icon kma-sso-icon--letter" aria-hidden="true">
         {letter}
@@ -62,7 +61,7 @@ function CDNProviderIcon({ provider }: { provider: string }) {
       src={`https://cdn.simpleicons.org/${slug}`}
       alt=""
       className="kma-sso-icon"
-      onError={() => setErrored(true)}
+      onError={() => setErroredSlug(slug)}
     />
   );
 }

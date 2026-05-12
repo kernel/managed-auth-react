@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   AppleMark,
   BuildingIcon,
@@ -45,6 +45,7 @@ function titleCase(provider: string): string {
 
 function CDNProviderIcon({ provider }: { provider: string }) {
   const [errored, setErrored] = useState(false);
+  useEffect(() => setErrored(false), [provider]);
   const slug = slugify(provider);
   const letter = provider.trim().charAt(0).toUpperCase() || "?";
 
@@ -67,10 +68,13 @@ function CDNProviderIcon({ provider }: { provider: string }) {
 }
 
 export function getSSOProviderInfo(provider: string): SSOProviderInfo {
-  const key = slugify(provider);
+  const slug = slugify(provider);
 
-  const builtin = BUILTIN_PROVIDERS[key];
-  if (builtin) {
+  const builtinKey = Object.keys(BUILTIN_PROVIDERS).find((k) =>
+    slug.includes(k),
+  );
+  if (builtinKey) {
+    const builtin = BUILTIN_PROVIDERS[builtinKey];
     return {
       label: builtin.label,
       icon: <builtin.Icon className="kma-sso-icon" />,

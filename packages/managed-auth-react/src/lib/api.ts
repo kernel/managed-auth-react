@@ -161,12 +161,21 @@ export function submitSignInOption(
   );
 }
 
+/** Callbacks for the SSE event stream. */
 export interface ManagedAuthStreamHandlers {
   onState: (data: ManagedAuthStateEventData) => void;
   onError: (error: ManagedAuthApiError) => void;
   onClose: () => void;
 }
 
+/**
+ * Opens an SSE connection to `/auth/connections/{id}/events` and dispatches
+ * incoming events to the provided handlers. Returns a teardown function that
+ * aborts the connection.
+ *
+ * Uses fetch + ReadableStream instead of EventSource because the endpoint
+ * requires an Authorization header.
+ */
 export function streamManagedAuthEvents(
   id: string,
   jwt: string,
@@ -204,12 +213,14 @@ export function streamManagedAuthEvents(
     const decoder = new TextDecoder();
     let buffer = "";
 
+    // Read chunks from the stream and parse SSE frames (delimited by \n\n).
     for (;;) {
       const { value, done } = await reader.read();
       if (done) break;
 
       buffer += decoder.decode(value, { stream: true });
 
+      // Each SSE frame is: "event: <type>\ndata: <json>\n\n"
       let boundary = buffer.indexOf("\n\n");
       while (boundary !== -1) {
         const raw = buffer.slice(0, boundary);
@@ -253,6 +264,7 @@ export function streamManagedAuthEvents(
 
     handlers.onClose();
   })().catch((err: unknown) => {
+    // AbortError is expected when the caller invokes the teardown function.
     if (err instanceof Error && err.name === "AbortError") return;
     const message =
       err instanceof Error ? err.message : "Stream failed";

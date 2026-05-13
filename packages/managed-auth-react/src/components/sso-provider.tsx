@@ -1,15 +1,34 @@
 import { useState, type ReactNode } from "react";
-import { BuildingIcon, KeyIcon } from "./icons";
+import {
+  AppleMark,
+  BuildingIcon,
+  FacebookMark,
+  GitHubMark,
+  GitLabMark,
+  GoogleMark,
+  KeyIcon,
+  MicrosoftMark,
+} from "./icons";
 
 export interface SSOProviderInfo {
   label: string;
   icon: ReactNode;
 }
 
-const NON_BRAND_ICONS: Record<string, { label: string; icon: ReactNode }> = {
-  passkey: { label: "Passkey", icon: <KeyIcon className="kma-sso-icon" /> },
-  sso: { label: "SSO", icon: <BuildingIcon className="kma-sso-icon" /> },
-  saml: { label: "SSO", icon: <BuildingIcon className="kma-sso-icon" /> },
+const BUILTIN_PROVIDERS: Record<
+  string,
+  { label: string; Icon: (p: { className?: string }) => ReactNode }
+> = {
+  google: { label: "Google", Icon: GoogleMark },
+  github: { label: "GitHub", Icon: GitHubMark },
+  gitlab: { label: "GitLab", Icon: GitLabMark },
+  microsoft: { label: "Microsoft", Icon: MicrosoftMark },
+  azure: { label: "Microsoft", Icon: MicrosoftMark },
+  facebook: { label: "Facebook", Icon: FacebookMark },
+  apple: { label: "Apple", Icon: AppleMark },
+  passkey: { label: "Passkey", Icon: KeyIcon },
+  sso: { label: "SSO", Icon: BuildingIcon },
+  saml: { label: "SSO", Icon: BuildingIcon },
 };
 
 function slugify(provider: string): string {
@@ -24,7 +43,7 @@ function titleCase(provider: string): string {
     .join(" ");
 }
 
-function SSOProviderIcon({ provider }: { provider: string }) {
+function CDNProviderIcon({ provider }: { provider: string }) {
   const [errored, setErrored] = useState(false);
   const slug = slugify(provider);
   const letter = provider.trim().charAt(0).toUpperCase() || "?";
@@ -49,10 +68,17 @@ function SSOProviderIcon({ provider }: { provider: string }) {
 
 export function getSSOProviderInfo(provider: string): SSOProviderInfo {
   const key = slugify(provider);
-  const nonBrand = NON_BRAND_ICONS[key];
-  if (nonBrand) return nonBrand;
+
+  const builtin = BUILTIN_PROVIDERS[key];
+  if (builtin) {
+    return {
+      label: builtin.label,
+      icon: <builtin.Icon className="kma-sso-icon" />,
+    };
+  }
+
   return {
     label: titleCase(provider),
-    icon: <SSOProviderIcon provider={provider} />,
+    icon: <CDNProviderIcon provider={provider} />,
   };
 }

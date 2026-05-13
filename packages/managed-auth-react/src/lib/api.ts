@@ -4,6 +4,8 @@ import type {
   MFAType,
 } from "./types";
 
+export type { ManagedAuthStateEventData };
+
 export interface ApiClientOptions {
   baseUrl?: string;
   fetch?: typeof fetch;
@@ -14,11 +16,13 @@ const DEFAULT_BASE_URL = "https://api.onkernel.com";
 export class ManagedAuthApiError extends Error {
   public readonly status: number;
   public readonly body: string;
-  constructor(message: string, status: number, body: string) {
+  public readonly fatal: boolean;
+  constructor(message: string, status: number, body: string, fatal = false) {
     super(message);
     this.name = "ManagedAuthApiError";
     this.status = status;
     this.body = body;
+    this.fatal = fatal;
   }
 }
 
@@ -214,17 +218,17 @@ export function streamManagedAuthEvents(
     let buffer = "";
 
     // Read chunks from the stream and parse SSE frames (delimited by \n\n).
+    const SEPARATOR = /\r\n\r\n|\r\r|\n\n/;
     for (;;) {
       const { value, done } = await reader.read();
       if (done) break;
 
       buffer += decoder.decode(value, { stream: true });
-
-      // Each SSE frame is: "event: <type>\ndata: <json>\n\n"
-      let boundary = buffer.indexOf("\n\n");
-      while (boundary !== -1) {
-        const raw = buffer.slice(0, boundary);
-        buffer = buffer.slice(boundary + 2);
+      for (;;) {
+        const match = SEPARATOR.exec(buffer);
+        if (!match) break;
+        const raw = buffer.slice(0, match.index);
+        buffer = buffer.slice(match.index + match[0].length);
 
         let eventType = "";
         let data = "";
@@ -241,24 +245,22 @@ export function streamManagedAuthEvents(
             /* malformed JSON — skip */
           }
         } else if (eventType === "error" && data) {
+          let message = "Stream error";
           try {
-            const parsed = JSON.parse(data);
-            handlers.onError(
-              new ManagedAuthApiError(
-                parsed.error?.message ?? "Stream error",
-                0,
-                data,
-              ),
-            );
+            const parsed = JSON.parse(data) as {
+              error?: { message?: string };
+            };
+            if (parsed.error?.message) message = parsed.error.message;
           } catch {
-            handlers.onError(
-              new ManagedAuthApiError("Stream error", 0, data),
-            );
+            /* fall through with default message */
           }
+          handlers.onError(
+            new ManagedAuthApiError(message, 500, data, true),
+          );
+          controller.abort();
+          return;
         }
         // sse_heartbeat and unknown event types are silently ignored
-
-        boundary = buffer.indexOf("\n\n");
       }
     }
 

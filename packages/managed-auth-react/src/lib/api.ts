@@ -207,9 +207,7 @@ export function streamManagedAuthEvents(
     }
 
     if (!res.body) {
-      handlers.onError(
-        new ManagedAuthApiError("No response body", 0, ""),
-      );
+      handlers.onError(new ManagedAuthApiError("No response body", 0, ""));
       return;
     }
 
@@ -254,9 +252,7 @@ export function streamManagedAuthEvents(
           } catch {
             /* fall through with default message */
           }
-          handlers.onError(
-            new ManagedAuthApiError(message, 500, data, true),
-          );
+          handlers.onError(new ManagedAuthApiError(message, 500, data, true));
           controller.abort();
           return;
         }
@@ -268,8 +264,7 @@ export function streamManagedAuthEvents(
   })().catch((err: unknown) => {
     // AbortError is expected when the caller invokes the teardown function.
     if (err instanceof Error && err.name === "AbortError") return;
-    const message =
-      err instanceof Error ? err.message : "Stream failed";
+    const message = err instanceof Error ? err.message : "Stream failed";
     handlers.onError(new ManagedAuthApiError(message, 0, ""));
   });
 

@@ -230,7 +230,7 @@ export function streamManagedAuthEvents(
 
         let eventType = "";
         let data = "";
-        for (const line of raw.split("\n")) {
+        for (const line of raw.split(/\r\n|\r|\n/)) {
           if (line.startsWith("event: ")) eventType = line.slice(7);
           else if (line.startsWith("data: ")) data = line.slice(6);
         }

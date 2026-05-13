@@ -1,4 +1,8 @@
-import type { ManagedAuthResponse, MFAType } from "./types";
+import type {
+  ManagedAuthResponse,
+  ManagedAuthStateEventData,
+  MFAType,
+} from "./types";
 
 export interface ApiClientOptions {
   baseUrl?: string;
@@ -155,4 +159,105 @@ export function submitSignInOption(
     { fields: {}, sign_in_option_id: signInOptionId },
     options,
   );
+}
+
+export interface ManagedAuthStreamHandlers {
+  onState: (data: ManagedAuthStateEventData) => void;
+  onError: (error: ManagedAuthApiError) => void;
+  onClose: () => void;
+}
+
+export function streamManagedAuthEvents(
+  id: string,
+  jwt: string,
+  handlers: ManagedAuthStreamHandlers,
+  options?: ApiClientOptions,
+): () => void {
+  const controller = new AbortController();
+  const f = getFetch(options);
+  const url = `${getBaseUrl(options)}/auth/connections/${id}/events`;
+
+  (async () => {
+    const res = await f(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        Accept: "text/event-stream",
+      },
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      const msg = await parseError(res);
+      handlers.onError(new ManagedAuthApiError(msg, res.status, msg));
+      return;
+    }
+
+    if (!res.body) {
+      handlers.onError(
+        new ManagedAuthApiError("No response body", 0, ""),
+      );
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      let boundary = buffer.indexOf("\n\n");
+      while (boundary !== -1) {
+        const raw = buffer.slice(0, boundary);
+        buffer = buffer.slice(boundary + 2);
+
+        let eventType = "";
+        let data = "";
+        for (const line of raw.split("\n")) {
+          if (line.startsWith("event: ")) eventType = line.slice(7);
+          else if (line.startsWith("data: ")) data = line.slice(6);
+        }
+
+        if (eventType === "managed_auth_state" && data) {
+          try {
+            const parsed = JSON.parse(data) as ManagedAuthStateEventData;
+            handlers.onState(parsed);
+          } catch {
+            /* malformed JSON — skip */
+          }
+        } else if (eventType === "error" && data) {
+          try {
+            const parsed = JSON.parse(data);
+            handlers.onError(
+              new ManagedAuthApiError(
+                parsed.error?.message ?? "Stream error",
+                0,
+                data,
+              ),
+            );
+          } catch {
+            handlers.onError(
+              new ManagedAuthApiError("Stream error", 0, data),
+            );
+          }
+        }
+        // sse_heartbeat and unknown event types are silently ignored
+
+        boundary = buffer.indexOf("\n\n");
+      }
+    }
+
+    handlers.onClose();
+  })().catch((err: unknown) => {
+    if (err instanceof Error && err.name === "AbortError") return;
+    const message =
+      err instanceof Error ? err.message : "Stream failed";
+    handlers.onError(new ManagedAuthApiError(message, 0, ""));
+  });
+
+  return () => controller.abort();
 }

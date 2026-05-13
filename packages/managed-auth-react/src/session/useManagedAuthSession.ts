@@ -113,6 +113,11 @@ export function useManagedAuthSession(
     success: false,
     error: false,
   });
+  // Tracks the in-flight bootstrap exchange. ``key`` identifies which
+  // (sessionId, handoffCode) pair it belongs to; ``active`` is false
+  // between cleanup and the matching-key remount. See the effect below
+  // for the invariants these fields enforce.
+  const exchangeRef = useRef<{ key: string; active: boolean } | null>(null);
 
   const fireSuccessOnce = useCallback(
     (payload: AuthSuccessPayload) => {
@@ -265,10 +270,41 @@ export function useManagedAuthSession(
   );
 
   useEffect(() => {
-    let cancelled = false;
+    // Strict-Mode-safe one-shot init. Under React 18+ Strict Mode in dev,
+    // effects run mount → cleanup → mount; the handoff code is one-shot
+    // server-side, so a naive remount refires the exchange against an
+    // already-consumed code. Three invariants make this safe:
+    //
+    //   1. Guard the exchange by ref identity, not a closure-local
+    //      ``cancelled`` flag — a closure flag set by the synthetic
+    //      cleanup would orphan the first mount's in-flight result.
+    //   2. Track an ``active`` flag on the ref so the async can
+    //      distinguish a real unmount (active stays false) from a
+    //      Strict Mode unmount/remount (active flips false → true
+    //      synchronously before the async resolves).
+    //   3. Always return the cleanup, even on the short-circuit path —
+    //      React only keeps the most recent effect's cleanup, so a bare
+    //      ``return`` from the second mount would orphan ``disconnectStream``
+    //      and leak the connection at real unmount.
+    const exchangeKey = `${sessionId}::${handoffCode}`;
+    const cleanup = () => {
+      if (exchangeRef.current?.key === exchangeKey) {
+        exchangeRef.current.active = false;
+      }
+      disconnectStream();
+    };
+
+    if (exchangeRef.current?.key === exchangeKey) {
+      exchangeRef.current.active = true;
+      return cleanup;
+    }
+
     terminalRef.current = false;
     reconnectAttemptsRef.current = 0;
     callbackFiredRef.current = { success: false, error: false };
+
+    const ref = { key: exchangeKey, active: true };
+    exchangeRef.current = ref;
 
     (async () => {
       try {
@@ -277,10 +313,10 @@ export function useManagedAuthSession(
           handoffCode,
           options,
         );
-        if (cancelled) return;
+        if (exchangeRef.current !== ref || !ref.active) return;
         setJwt(token);
         const initial = await retrieveManagedAuth(sessionId, token, options);
-        if (cancelled) return;
+        if (exchangeRef.current !== ref || !ref.active) return;
         stateRef.current = initial;
         setState(initial);
         const derived = deriveUIState(initial);
@@ -308,7 +344,7 @@ export function useManagedAuthSession(
           setUIState("prime");
         }
       } catch (err) {
-        if (cancelled) return;
+        if (exchangeRef.current !== ref || !ref.active) return;
         const message =
           err instanceof Error ? err.message : "Failed to start session";
         setInitError(message);
@@ -317,10 +353,7 @@ export function useManagedAuthSession(
         fireErrorOnce({ message });
       }
     })();
-    return () => {
-      cancelled = true;
-      disconnectStream();
-    };
+    return cleanup;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, handoffCode]);
 

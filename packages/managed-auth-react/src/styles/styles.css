@@ -373,10 +373,10 @@
   justify-content: center;
   gap: 8px;
   padding: 0 1rem;
-  height: 3rem;
+  min-height: 3rem;
   line-height: 1.2;
-  white-space: nowrap;
   text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .kma-button:focus-visible {
@@ -398,7 +398,7 @@
 /* Slightly shorter primary button used inside forms — matches the
    previous hosted-ui form submit (`h-11` = 44px). */
 .kma-button--sm {
-  height: 2.75rem;
+  min-height: 2.75rem;
 }
 
 .kma-button--primary {
@@ -494,9 +494,14 @@
 
 .kma-sso-button {
   width: 100%;
-  height: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
   font-size: var(--kma-font-size-lg);
   gap: 12px;
+}
+
+.kma-sso-button__label {
+  min-width: 0;
 }
 
 .kma-sso-button__icon {

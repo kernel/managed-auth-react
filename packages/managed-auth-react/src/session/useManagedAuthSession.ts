@@ -88,12 +88,18 @@ export function useManagedAuthSession(
   });
   // Tracks the in-flight (or completed) bootstrap exchange so the second
   // mount of a React 18+ Strict Mode mount → cleanup → mount cycle can
-  // adopt the result of the first mount's exchange instead of refiring it
-  // with a now-consumed handoff code. Keyed by ``{ key }`` (not the raw
-  // string) so the *identity* of the object identifies a single exchange:
-  // a real prop change replaces the object, naturally invalidating the
-  // previous async's setState calls via the staleness check below.
-  const exchangeRef = useRef<{ key: string } | null>(null);
+  // adopt the result of the first mount's exchange instead of refiring
+  // it with a now-consumed handoff code.
+  //
+  // ``key`` identifies *which* (sessionId, handoffCode) exchange this is
+  // (so a real prop change replaces the object and stales the previous
+  // async by identity). ``active`` is flipped to false by cleanup and
+  // back to true by the matching-key remount — so the in-flight async
+  // can distinguish a Strict Mode synthetic unmount/remount (active goes
+  // false then true again before resolve) from a real unmount (stays
+  // false), and stop mid-flight calls or post-unmount ``startPolling``
+  // from acting on a dead component.
+  const exchangeRef = useRef<{ key: string; active: boolean } | null>(null);
 
   const stopPolling = useCallback(() => {
     if (pollDelayRef.current) {
@@ -178,22 +184,37 @@ export function useManagedAuthSession(
     // Strict-Mode-safe one-shot init. Under React 18+ Strict Mode in dev,
     // effects run mount → cleanup → mount. The handoff code is one-shot
     // server-side, so the original code refired ``exchangeHandoffCode``
-    // on the second mount and landed in the error state.
+    // on the second mount and landed in the error state. The fix has
+    // three moving parts (Cursor #10 review iterations):
     //
-    // A closure-local ``cancelled`` flag doesn't work as a guard either:
-    // the cleanup would flip it to true and the first mount's in-flight
-    // exchange would skip its own ``setJwt`` on resolve, leaving the
-    // component silently stuck with jwt === null (Cursor #10 review).
-    //
-    // Instead, store an object on a ref. The second mount sees the same
-    // ``key`` and short-circuits without touching the ref — so the first
-    // mount's async resolves, the ref-identity check passes, and the JWT
-    // is committed. A real (sessionId, handoffCode) change replaces the
-    // ref with a new object; the previous async's staleness check then
-    // fails by identity and its setState calls are dropped cleanly.
+    //   1. Guard the exchange by ref identity, not a closure-local
+    //      ``cancelled`` flag — a closure flag set by the synthetic
+    //      cleanup would orphan the first mount's in-flight result.
+    //   2. Track an ``active`` flag on the ref so the async can also
+    //      distinguish a real unmount (active stays false) from a
+    //      Strict Mode unmount/remount (active flips false → true
+    //      synchronously before the async resolves).
+    //   3. Always return the cleanup, even on the short-circuit path —
+    //      React only keeps the most recent effect's cleanup, so a bare
+    //      ``return`` from the second mount would orphan ``stopPolling``
+    //      and leak the interval at real unmount.
     const exchangeKey = `${sessionId}::${handoffCode}`;
-    if (exchangeRef.current?.key === exchangeKey) return;
-    const ref = { key: exchangeKey };
+    const cleanup = () => {
+      if (exchangeRef.current?.key === exchangeKey) {
+        exchangeRef.current.active = false;
+      }
+      stopPolling();
+    };
+
+    if (exchangeRef.current?.key === exchangeKey) {
+      // Strict Mode remount of the same exchange: cleanup just flipped
+      // active=false; flip it back so the in-flight async can commit.
+      // Return the cleanup so a later *real* unmount still stops polling.
+      exchangeRef.current.active = true;
+      return cleanup;
+    }
+
+    const ref = { key: exchangeKey, active: true };
     exchangeRef.current = ref;
 
     (async () => {
@@ -203,10 +224,10 @@ export function useManagedAuthSession(
           handoffCode,
           options,
         );
-        if (exchangeRef.current !== ref) return;
+        if (exchangeRef.current !== ref || !ref.active) return;
         setJwt(token);
         const initial = await retrieveManagedAuth(sessionId, token, options);
-        if (exchangeRef.current !== ref) return;
+        if (exchangeRef.current !== ref || !ref.active) return;
         setState(initial);
         const derived = deriveUIState(initial);
         if (
@@ -241,7 +262,7 @@ export function useManagedAuthSession(
           setUIState("prime");
         }
       } catch (err) {
-        if (exchangeRef.current !== ref) return;
+        if (exchangeRef.current !== ref || !ref.active) return;
         const message =
           err instanceof Error ? err.message : "Failed to start session";
         setInitError(message);
@@ -252,9 +273,7 @@ export function useManagedAuthSession(
         }
       }
     })();
-    return () => {
-      stopPolling();
-    };
+    return cleanup;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, handoffCode]);
 

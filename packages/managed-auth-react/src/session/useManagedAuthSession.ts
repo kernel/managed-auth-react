@@ -86,19 +86,10 @@ export function useManagedAuthSession(
     success: false,
     error: false,
   });
-  // Tracks the in-flight (or completed) bootstrap exchange so the second
-  // mount of a React 18+ Strict Mode mount → cleanup → mount cycle can
-  // adopt the result of the first mount's exchange instead of refiring
-  // it with a now-consumed handoff code.
-  //
-  // ``key`` identifies *which* (sessionId, handoffCode) exchange this is
-  // (so a real prop change replaces the object and stales the previous
-  // async by identity). ``active`` is flipped to false by cleanup and
-  // back to true by the matching-key remount — so the in-flight async
-  // can distinguish a Strict Mode synthetic unmount/remount (active goes
-  // false then true again before resolve) from a real unmount (stays
-  // false), and stop mid-flight calls or post-unmount ``startPolling``
-  // from acting on a dead component.
+  // Tracks the in-flight bootstrap exchange. ``key`` identifies which
+  // (sessionId, handoffCode) pair it belongs to; ``active`` is false
+  // between cleanup and the matching-key remount. See the effect below
+  // for the invariants these fields enforce.
   const exchangeRef = useRef<{ key: string; active: boolean } | null>(null);
 
   const stopPolling = useCallback(() => {
@@ -182,15 +173,14 @@ export function useManagedAuthSession(
 
   useEffect(() => {
     // Strict-Mode-safe one-shot init. Under React 18+ Strict Mode in dev,
-    // effects run mount → cleanup → mount. The handoff code is one-shot
-    // server-side, so the original code refired ``exchangeHandoffCode``
-    // on the second mount and landed in the error state. The fix has
-    // three moving parts (Cursor #10 review iterations):
+    // effects run mount → cleanup → mount; the handoff code is one-shot
+    // server-side, so a naive remount refires the exchange against an
+    // already-consumed code. Three invariants make this safe:
     //
     //   1. Guard the exchange by ref identity, not a closure-local
     //      ``cancelled`` flag — a closure flag set by the synthetic
     //      cleanup would orphan the first mount's in-flight result.
-    //   2. Track an ``active`` flag on the ref so the async can also
+    //   2. Track an ``active`` flag on the ref so the async can
     //      distinguish a real unmount (active stays false) from a
     //      Strict Mode unmount/remount (active flips false → true
     //      synchronously before the async resolves).

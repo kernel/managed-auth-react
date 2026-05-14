@@ -86,13 +86,14 @@ export function useManagedAuthSession(
     success: false,
     error: false,
   });
-  // Guards against React 18+ Strict Mode's dev-only mount → cleanup → mount
-  // double-invocation. The handoff code is one-shot on the server, so the
-  // second mount's exchange call would always 4xx and surface as
-  // "Failed to start session" even when auth would have worked fine.
-  // Stores the (sessionId, handoffCode) pair so a genuine prop change still
-  // triggers a fresh exchange; only repeats of the same pair are skipped.
-  const exchangedKeyRef = useRef<string | null>(null);
+  // Tracks the in-flight (or completed) bootstrap exchange so the second
+  // mount of a React 18+ Strict Mode mount → cleanup → mount cycle can
+  // adopt the result of the first mount's exchange instead of refiring it
+  // with a now-consumed handoff code. Keyed by ``{ key }`` (not the raw
+  // string) so the *identity* of the object identifies a single exchange:
+  // a real prop change replaces the object, naturally invalidating the
+  // previous async's setState calls via the staleness check below.
+  const exchangeRef = useRef<{ key: string } | null>(null);
 
   const stopPolling = useCallback(() => {
     if (pollDelayRef.current) {
@@ -174,17 +175,27 @@ export function useManagedAuthSession(
   );
 
   useEffect(() => {
-    // Strict-mode-safe one-shot init: skip the duplicate mount that would
-    // re-exchange an already-consumed handoff code. ``cancelled`` alone
-    // can't help here — it stops the second render's setState calls but
-    // can't unsend the HTTP request that consumed the code on the first
-    // mount. Same idea as ``callbackFiredRef`` above, scoped per
-    // (sessionId, handoffCode) so a real prop change still re-runs.
+    // Strict-Mode-safe one-shot init. Under React 18+ Strict Mode in dev,
+    // effects run mount → cleanup → mount. The handoff code is one-shot
+    // server-side, so the original code refired ``exchangeHandoffCode``
+    // on the second mount and landed in the error state.
+    //
+    // A closure-local ``cancelled`` flag doesn't work as a guard either:
+    // the cleanup would flip it to true and the first mount's in-flight
+    // exchange would skip its own ``setJwt`` on resolve, leaving the
+    // component silently stuck with jwt === null (Cursor #10 review).
+    //
+    // Instead, store an object on a ref. The second mount sees the same
+    // ``key`` and short-circuits without touching the ref — so the first
+    // mount's async resolves, the ref-identity check passes, and the JWT
+    // is committed. A real (sessionId, handoffCode) change replaces the
+    // ref with a new object; the previous async's staleness check then
+    // fails by identity and its setState calls are dropped cleanly.
     const exchangeKey = `${sessionId}::${handoffCode}`;
-    if (exchangedKeyRef.current === exchangeKey) return;
-    exchangedKeyRef.current = exchangeKey;
+    if (exchangeRef.current?.key === exchangeKey) return;
+    const ref = { key: exchangeKey };
+    exchangeRef.current = ref;
 
-    let cancelled = false;
     (async () => {
       try {
         const token = await exchangeHandoffCode(
@@ -192,10 +203,10 @@ export function useManagedAuthSession(
           handoffCode,
           options,
         );
-        if (cancelled) return;
+        if (exchangeRef.current !== ref) return;
         setJwt(token);
         const initial = await retrieveManagedAuth(sessionId, token, options);
-        if (cancelled) return;
+        if (exchangeRef.current !== ref) return;
         setState(initial);
         const derived = deriveUIState(initial);
         if (
@@ -230,7 +241,7 @@ export function useManagedAuthSession(
           setUIState("prime");
         }
       } catch (err) {
-        if (cancelled) return;
+        if (exchangeRef.current !== ref) return;
         const message =
           err instanceof Error ? err.message : "Failed to start session";
         setInitError(message);
@@ -242,7 +253,6 @@ export function useManagedAuthSession(
       }
     })();
     return () => {
-      cancelled = true;
       stopPolling();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

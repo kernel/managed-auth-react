@@ -86,6 +86,13 @@ export function useManagedAuthSession(
     success: false,
     error: false,
   });
+  // Guards against React 18+ Strict Mode's dev-only mount → cleanup → mount
+  // double-invocation. The handoff code is one-shot on the server, so the
+  // second mount's exchange call would always 4xx and surface as
+  // "Failed to start session" even when auth would have worked fine.
+  // Stores the (sessionId, handoffCode) pair so a genuine prop change still
+  // triggers a fresh exchange; only repeats of the same pair are skipped.
+  const exchangedKeyRef = useRef<string | null>(null);
 
   const stopPolling = useCallback(() => {
     if (pollDelayRef.current) {
@@ -167,6 +174,16 @@ export function useManagedAuthSession(
   );
 
   useEffect(() => {
+    // Strict-mode-safe one-shot init: skip the duplicate mount that would
+    // re-exchange an already-consumed handoff code. ``cancelled`` alone
+    // can't help here — it stops the second render's setState calls but
+    // can't unsend the HTTP request that consumed the code on the first
+    // mount. Same idea as ``callbackFiredRef`` above, scoped per
+    // (sessionId, handoffCode) so a real prop change still re-runs.
+    const exchangeKey = `${sessionId}::${handoffCode}`;
+    if (exchangedKeyRef.current === exchangeKey) return;
+    exchangedKeyRef.current = exchangeKey;
+
     let cancelled = false;
     (async () => {
       try {

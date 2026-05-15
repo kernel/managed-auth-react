@@ -1,0 +1,6 @@
+{
+  "buildCommand": "bun run --filter @onkernel/managed-auth-react build && cd packages/demo && bun run build",
+  "outputDirectory": "packages/demo/dist",
+  "framework": "vite",
+  "installCommand": "bun install"
+}

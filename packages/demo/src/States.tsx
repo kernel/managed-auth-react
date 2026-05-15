@@ -45,9 +45,17 @@ const mockFields: DiscoveredField[] = [
 // `switch` is deliberately first — UnifiedAuthForm sorts it to the bottom,
 // so this proves the sort behavior works.
 const mockMFAOptions: MFAOption[] = [
-  { type: "switch", description: "Pick a different verification method" },
+  {
+    type: "switch",
+    label: "Try another way",
+    description: "Pick a different verification method",
+  },
   { type: "sms", target: "•••• 4242" },
-  { type: "totp", description: "Use your authenticator app" },
+  {
+    type: "totp",
+    label: "Get a verification code from the Google Authenticator app",
+    description: "Use your authenticator app",
+  },
   { type: "push", target: "iPhone 15 Pro" },
 ];
 

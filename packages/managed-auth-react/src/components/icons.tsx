@@ -227,6 +227,30 @@ export const GitHubMark = (p: IconProps) => (
   </svg>
 );
 
+export const GitLabMark = (p: IconProps) => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" {...p}>
+    <path d="M12 23.054l3.684-11.335H8.316L12 23.054z" fill="#E24329" />
+    <path d="M12 23.054L8.316 11.719H1.647L12 23.054z" fill="#FC6D26" />
+    <path
+      d="M1.647 11.719L.253 16.01a.95.95 0 00.346 1.062L12 23.054 1.647 11.719z"
+      fill="#FCA326"
+    />
+    <path
+      d="M1.647 11.719h6.669L5.633.926a.477.477 0 00-.908 0L1.647 11.719z"
+      fill="#E24329"
+    />
+    <path d="M12 23.054l3.684-11.335h6.669L12 23.054z" fill="#FC6D26" />
+    <path
+      d="M22.353 11.719l1.394 4.291a.95.95 0 01-.346 1.062L12 23.054l10.353-11.335z"
+      fill="#FCA326"
+    />
+    <path
+      d="M22.353 11.719h-6.669l2.683-10.793a.477.477 0 01.908 0l3.078 10.793z"
+      fill="#E24329"
+    />
+  </svg>
+);
+
 export const MicrosoftMark = (p: IconProps) => (
   <svg viewBox="0 0 24 24" aria-hidden="true" {...p}>
     <path d="M1 1h10.5v10.5H1V1z" fill="#F25022" />

@@ -158,8 +158,8 @@ export function useManagedAuthSession(
 
   const connectStream = useCallback(
     (token: string) => {
+      disconnectStream();
       if (terminalRef.current) return;
-      if (disconnectRef.current) return;
 
       const handleStateEvent = (ev: ManagedAuthStateEventData) => {
         reconnectAttemptsRef.current = 0;
@@ -194,6 +194,10 @@ export function useManagedAuthSession(
 
       const scheduleReconnect = () => {
         if (terminalRef.current) return;
+        if (reconnectTimerRef.current) {
+          clearTimeout(reconnectTimerRef.current);
+          reconnectTimerRef.current = null;
+        }
         setIsReconnecting(true);
         const attempt = reconnectAttemptsRef.current++;
         const delay = Math.min(

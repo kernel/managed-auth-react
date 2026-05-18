@@ -81,6 +81,7 @@ export interface ManagedAuthResponse {
   profile_name: string;
   flow_status: FlowStatus;
   flow_step: FlowStep;
+  flow_type?: "LOGIN" | "REAUTH" | null;
   discovered_fields?: DiscoveredField[] | null;
   pending_sso_buttons?: SSOButton[] | null;
   mfa_options?: MFAOption[] | null;
@@ -90,6 +91,9 @@ export interface ManagedAuthResponse {
   website_error?: string | null;
   error_message?: string | null;
   error_code?: string | null;
+  post_login_url?: string | null;
+  live_view_url?: string | null;
+  hosted_url?: string | null;
 }
 
 export type UIState =

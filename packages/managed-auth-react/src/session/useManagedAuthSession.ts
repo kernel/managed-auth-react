@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   exchangeHandoffCode,
+  ManagedAuthApiError,
   retrieveManagedAuth,
   streamManagedAuthEvents,
   submitFieldValues,
@@ -55,6 +56,7 @@ function mergeStateEvent(
     ...base,
     flow_status: ev.flow_status,
     flow_step: ev.flow_step,
+    flow_type: ev.flow_type ?? base.flow_type ?? null,
     discovered_fields: ev.discovered_fields ?? null,
     pending_sso_buttons: ev.pending_sso_buttons ?? null,
     mfa_options: ev.mfa_options ?? null,
@@ -63,6 +65,9 @@ function mergeStateEvent(
     website_error: ev.website_error ?? null,
     error_message: ev.error_message ?? null,
     error_code: ev.error_code ?? null,
+    post_login_url: ev.post_login_url ?? base.post_login_url ?? null,
+    live_view_url: ev.live_view_url ?? base.live_view_url ?? null,
+    hosted_url: ev.hosted_url ?? base.hosted_url ?? null,
   };
 }
 
@@ -79,6 +84,7 @@ export interface ManagedAuthSessionValue {
   state: ManagedAuthResponse | null;
   uiState: UIState;
   isSubmitting: boolean;
+  isReconnecting: boolean;
   submitError: string | null;
   initError: string | null;
   startFlow: () => void;
@@ -101,6 +107,7 @@ export function useManagedAuthSession(
   const [state, setState] = useState<ManagedAuthResponse | null>(null);
   const [uiState, setUIState] = useState<UIState>("prime");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReconnecting, setIsReconnecting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [initError, setInitError] = useState<string | null>(null);
 
@@ -156,6 +163,7 @@ export function useManagedAuthSession(
 
       const handleStateEvent = (ev: ManagedAuthStateEventData) => {
         reconnectAttemptsRef.current = 0;
+        setIsReconnecting(false);
         setSubmitError(null);
         const base = stateRef.current;
         if (!base) return;
@@ -186,6 +194,7 @@ export function useManagedAuthSession(
 
       const scheduleReconnect = () => {
         if (terminalRef.current) return;
+        setIsReconnecting(true);
         const attempt = reconnectAttemptsRef.current++;
         const delay = Math.min(
           RECONNECT_BASE_MS * Math.pow(2, attempt),
@@ -229,7 +238,8 @@ export function useManagedAuthSession(
           connectStream(t);
         } catch (err) {
           if (gen !== generationRef.current) return;
-          const status = (err as { status?: number })?.status;
+          const status =
+            err instanceof ManagedAuthApiError ? err.status : undefined;
           if (status === 401 || status === 410) {
             terminalRef.current = true;
             setUIState("expired");
@@ -437,6 +447,7 @@ export function useManagedAuthSession(
     state,
     uiState,
     isSubmitting,
+    isReconnecting,
     submitError,
     initError,
     startFlow,

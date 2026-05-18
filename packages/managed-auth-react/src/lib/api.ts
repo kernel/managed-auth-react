@@ -169,6 +169,7 @@ export function submitSignInOption(
 export interface ManagedAuthStreamHandlers {
   onState: (data: ManagedAuthStateEventData) => void;
   onError: (error: ManagedAuthApiError) => void;
+  /** Fires only on graceful stream end (server closed the connection). Not called after onError. */
   onClose: () => void;
 }
 
@@ -232,7 +233,8 @@ export function streamManagedAuthEvents(
         let data = "";
         for (const line of raw.split(/\r\n|\r|\n/)) {
           if (line.startsWith("event: ")) eventType = line.slice(7);
-          else if (line.startsWith("data: ")) data = line.slice(6);
+          else if (line.startsWith("data: "))
+            data += (data ? "\n" : "") + line.slice(6);
         }
 
         if (eventType === "managed_auth_state" && data) {
@@ -252,7 +254,7 @@ export function streamManagedAuthEvents(
           } catch {
             /* fall through with default message */
           }
-          handlers.onError(new ManagedAuthApiError(message, 500, data, true));
+          handlers.onError(new ManagedAuthApiError(message, 0, data, true));
           controller.abort();
           return;
         }

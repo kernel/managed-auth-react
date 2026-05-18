@@ -219,6 +219,7 @@ export function useManagedAuthSession(
           setUIState(derived);
           if (isTerminal(derived)) {
             terminalRef.current = true;
+            setIsReconnecting(false);
             if (derived === "success") {
               fireSuccessOnce({
                 profileName: fresh.profile_name,
@@ -242,6 +243,7 @@ export function useManagedAuthSession(
             err instanceof ManagedAuthApiError ? err.status : undefined;
           if (status === 401 || status === 410) {
             terminalRef.current = true;
+            setIsReconnecting(false);
             setUIState("expired");
             fireErrorOnce({ message: "Session expired" });
             return;
@@ -259,12 +261,14 @@ export function useManagedAuthSession(
             disconnectRef.current = null;
             if (err.status === 401 || err.status === 410) {
               terminalRef.current = true;
+              setIsReconnecting(false);
               setUIState("expired");
               fireErrorOnce({ message: "Session expired" });
               return;
             }
             if (err.fatal) {
               terminalRef.current = true;
+              setIsReconnecting(false);
               setUIState("error");
               fireErrorOnce({ message: err.message });
               return;

@@ -109,6 +109,7 @@ export function useManagedAuthSession(
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const terminalRef = useRef(false);
+  const generationRef = useRef(0);
   const callbackFiredRef = useRef<{ success: boolean; error: boolean }>({
     success: false,
     error: false,
@@ -197,9 +198,11 @@ export function useManagedAuthSession(
       };
 
       const resyncAndConnect = async (t: string) => {
+        const gen = generationRef.current;
         if (terminalRef.current) return;
         try {
           const fresh = await retrieveManagedAuth(sessionId, t, options);
+          if (gen !== generationRef.current) return;
           if (terminalRef.current) return;
           stateRef.current = fresh;
           setState(fresh);
@@ -225,6 +228,7 @@ export function useManagedAuthSession(
           }
           connectStream(t);
         } catch (err) {
+          if (gen !== generationRef.current) return;
           const status = (err as { status?: number })?.status;
           if (status === 401 || status === 410) {
             terminalRef.current = true;
@@ -291,6 +295,7 @@ export function useManagedAuthSession(
       if (exchangeRef.current?.key === exchangeKey) {
         exchangeRef.current.active = false;
       }
+      generationRef.current++;
       disconnectStream();
     };
 

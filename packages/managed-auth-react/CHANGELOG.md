@@ -1,5 +1,11 @@
 # @onkernel/managed-auth-react
 
+## 0.4.0
+
+### Minor Changes
+
+- [#9](https://github.com/kernel/managed-auth-react/pull/9) [`045bbae`](https://github.com/kernel/managed-auth-react/commit/045bbaed5d72c36614b88bc4df5455b63866e063) Thanks [@dcruzeneil2](https://github.com/dcruzeneil2)! - Subscribe to managed auth state via the `/auth/connections/{id}/events` SSE endpoint instead of polling `/auth/connections/{id}` every 2s.
+
 ## 0.3.0
 
 ### Minor Changes

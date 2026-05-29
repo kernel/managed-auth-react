@@ -10,6 +10,7 @@ import { StepError } from "./components/StepError";
 import { StepExpired } from "./components/StepExpired";
 import { LoadingState } from "./components/LoadingState";
 import { ExternalActionWaiting } from "./components/ExternalActionWaiting";
+import { HumanInterventionStep } from "./components/HumanInterventionStep";
 import { useLocalization } from "./localization/context";
 import type { Appearance } from "./appearance/types";
 import type { Localization } from "./localization/types";
@@ -117,6 +118,12 @@ function KernelManagedAuthInner({
         onMFASelect={submitMFA}
         isLoading={isSubmitting}
       />
+    );
+  }
+
+  if (uiState === "awaiting_human_intervention") {
+    return (
+      <HumanInterventionStep liveViewUrl={state?.live_view_url ?? undefined} />
     );
   }
 

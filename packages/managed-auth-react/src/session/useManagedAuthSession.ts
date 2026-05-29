@@ -37,6 +37,8 @@ function deriveUIState(state: ManagedAuthResponse): UIState {
       return "awaiting_input";
     case "AWAITING_EXTERNAL_ACTION":
       return "awaiting_external_action";
+    case "AWAITING_HUMAN_INTERVENTION":
+      return "awaiting_human_intervention";
     case "SUBMITTING":
       return "submitting";
     default:

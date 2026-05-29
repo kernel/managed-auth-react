@@ -69,4 +69,9 @@ export const DEFAULT_LOCALIZATION: Localizer = {
   externalActionTitle: "Action Required",
   externalActionFallbackMessage: "Complete the verification on your device",
   externalActionWaiting: "Waiting for your confirmation...",
+  humanInterventionTitle: "Your Help Needed",
+  humanInterventionMessage:
+    "Please solve the captcha in the browser below to continue",
+  humanInterventionIframeTitle: "Browser live view",
+  humanInterventionWaiting: "Waiting for you to complete the challenge...",
 };

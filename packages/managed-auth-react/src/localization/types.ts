@@ -58,6 +58,11 @@ export interface Localization {
   externalActionTitle?: string;
   externalActionFallbackMessage?: string;
   externalActionWaiting?: string;
+  /** Human intervention (HITL). */
+  humanInterventionTitle?: string;
+  humanInterventionMessage?: string;
+  humanInterventionIframeTitle?: string;
+  humanInterventionWaiting?: string;
 }
 
 export type Localizer = Required<Localization>;

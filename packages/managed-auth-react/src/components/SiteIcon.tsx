@@ -16,7 +16,9 @@ interface SiteIconProps {
 // and mount an <img> only once it has actually decoded.
 export function SiteIcon({ siteName, tone = "normal" }: SiteIconProps) {
   const slot = useSlot();
-  const [iconUrl, setIconUrl] = useState<string | null>(null);
+  // The domain whose favicon has successfully decoded. Keyed by siteName so a
+  // result from a previous domain can never render against the current one.
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const slotProps = slot(
     "siteIcon",
     tone === "muted" ? "kma-site-icon kma-site-icon--muted" : "kma-site-icon",
@@ -24,12 +26,11 @@ export function SiteIcon({ siteName, tone = "normal" }: SiteIconProps) {
   const initials = extractPrimaryDomainLabel(siteName)
     .slice(0, 2)
     .toUpperCase();
+  const url = `https://geticon.io/img?url=https://${siteName}&size=128`;
 
   useEffect(() => {
-    setIconUrl(null);
     if (!siteName) return;
 
-    const url = `https://geticon.io/img?url=https://${siteName}&size=128`;
     let img: HTMLImageElement | null = null;
     let timer: ReturnType<typeof setTimeout> | undefined;
 
@@ -43,7 +44,7 @@ export function SiteIcon({ siteName, tone = "normal" }: SiteIconProps) {
     };
     const start = () => {
       img = new Image();
-      img.onload = () => setIconUrl(url);
+      img.onload = () => setLoadedFor(siteName);
       img.onerror = cancel;
       img.src = url;
       timer = setTimeout(cancel, 3000);
@@ -59,12 +60,12 @@ export function SiteIcon({ siteName, tone = "normal" }: SiteIconProps) {
       window.removeEventListener("load", start);
       cancel();
     };
-  }, [siteName]);
+  }, [siteName, url]);
 
   return (
     <div {...slotProps}>
-      {iconUrl ? (
-        <img src={iconUrl} alt={siteName} className="kma-site-icon__img" />
+      {loadedFor === siteName ? (
+        <img src={url} alt={siteName} className="kma-site-icon__img" />
       ) : (
         <span className="kma-site-icon__fallback">{initials}</span>
       )}

@@ -1,5 +1,11 @@
 # @onkernel/managed-auth-react
 
+## 0.4.1
+
+### Patch Changes
+
+- [#18](https://github.com/kernel/managed-auth-react/pull/18) [`fc3716d`](https://github.com/kernel/managed-auth-react/commit/fc3716d279c6724d7f51d0386f0467bfdb419004) Thanks [@masnwilliams](https://github.com/masnwilliams)! - Stop the site favicon from blocking page load. The icon now renders initials immediately and resolves the favicon out of band (deferred past `window.load`, behind a timeout), so a favicon host that hangs can no longer keep the page from finishing loading.
+
 ## 0.4.0
 
 ### Minor Changes

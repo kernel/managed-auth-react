@@ -28,6 +28,8 @@ export type MFAType =
   | "other";
 
 export interface DiscoveredField {
+  id?: string;
+  ref?: string;
   name: string;
   label: string;
   type: "text" | "email" | "password" | "tel" | "code" | "totp";
@@ -38,6 +40,7 @@ export interface DiscoveredField {
 }
 
 export interface SSOButton {
+  id?: string;
   provider: string;
   selector: string;
   label?: string;
@@ -57,10 +60,12 @@ export interface SignInOption {
 }
 
 export interface ManagedAuthField {
+  id: string;
   ref: string;
   type: "identifier" | "password" | "code" | "totp_code" | "totp_secret" | "text";
   label?: string;
   required?: boolean;
+  observed_selector?: string | null;
 }
 
 export type ManagedAuthChoiceType =

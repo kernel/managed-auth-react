@@ -5,7 +5,9 @@ import {
   retrieveManagedAuth,
   streamManagedAuthEvents,
   submitFieldValues,
+  submitCanonicalFieldValues,
   submitMFASelection,
+  submitSelectedChoice,
   submitSignInOption,
   submitSSOButton,
   type ApiClientOptions,
@@ -94,7 +96,9 @@ function fieldTypeToDiscoveredType(field: ManagedAuthField): DiscoveredField["ty
 function fieldsFromCanonical(fields?: ManagedAuthField[] | null): DiscoveredField[] | null {
   if (!fields) return null;
   return fields.map((field) => ({
-    name: field.ref,
+    id: field.id,
+    ref: field.ref,
+    name: field.id,
     type: fieldTypeToDiscoveredType(field),
     label: field.label || field.ref,
     required: field.required ?? true,
@@ -106,6 +110,7 @@ function ssoButtonsFromCanonical(choices?: ManagedAuthChoice[] | null): SSOButto
   return choices
     .filter((choice) => choice.type === "sso_provider")
     .map((choice) => ({
+      id: choice.id,
       provider: choice.id,
       selector: choice.observed_selector || choice.id,
       label: choice.label,
@@ -485,8 +490,12 @@ export function useManagedAuthSession(
   const submitFields = useCallback(
     async (credentials: Record<string, string>) => {
       if (!jwt) return;
+      const hasCanonicalFields = (stateRef.current?.fields?.length ?? 0) > 0;
       return submit(
-        () => submitFieldValues(sessionId, jwt, credentials, options),
+        () =>
+          hasCanonicalFields
+            ? submitCanonicalFieldValues(sessionId, jwt, credentials, options)
+            : submitFieldValues(sessionId, jwt, credentials, options),
         "Failed to submit credentials",
       );
     },
@@ -497,7 +506,10 @@ export function useManagedAuthSession(
     async (button: SSOButton) => {
       if (!jwt) return;
       return submit(
-        () => submitSSOButton(sessionId, jwt, button.selector, options),
+        () =>
+          button.id
+            ? submitSelectedChoice(sessionId, jwt, button.id, options)
+            : submitSSOButton(sessionId, jwt, button.selector, options),
         "Failed to initiate SSO login",
       );
     },

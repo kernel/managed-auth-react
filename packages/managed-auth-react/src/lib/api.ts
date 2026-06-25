@@ -92,7 +92,9 @@ export async function retrieveManagedAuth(
 }
 
 interface SubmitBody {
-  fields: Record<string, string>;
+  fields?: Record<string, string>;
+  field_values?: Record<string, string>;
+  selected_choice_id?: string;
   sso_button_selector?: string;
   mfa_option_id?: MFAType;
   sign_in_option_id?: string;
@@ -128,6 +130,24 @@ export function submitFieldValues(
   return submit(id, jwt, { fields }, options);
 }
 
+export function submitCanonicalFieldValues(
+  id: string,
+  jwt: string,
+  fieldValues: Record<string, string>,
+  options?: ApiClientOptions,
+): Promise<void> {
+  return submit(id, jwt, { field_values: fieldValues }, options);
+}
+
+export function submitSelectedChoice(
+  id: string,
+  jwt: string,
+  selectedChoiceId: string,
+  options?: ApiClientOptions,
+): Promise<void> {
+  return submit(id, jwt, { selected_choice_id: selectedChoiceId }, options);
+}
+
 export function submitSSOButton(
   id: string,
   jwt: string,
@@ -137,7 +157,7 @@ export function submitSSOButton(
   return submit(
     id,
     jwt,
-    { fields: {}, sso_button_selector: selector },
+    { sso_button_selector: selector },
     options,
   );
 }
@@ -148,7 +168,7 @@ export function submitMFASelection(
   mfaType: MFAType,
   options?: ApiClientOptions,
 ): Promise<void> {
-  return submit(id, jwt, { fields: {}, mfa_option_id: mfaType }, options);
+  return submit(id, jwt, { mfa_option_id: mfaType }, options);
 }
 
 export function submitSignInOption(
@@ -160,7 +180,7 @@ export function submitSignInOption(
   return submit(
     id,
     jwt,
-    { fields: {}, sign_in_option_id: signInOptionId },
+    { sign_in_option_id: signInOptionId },
     options,
   );
 }

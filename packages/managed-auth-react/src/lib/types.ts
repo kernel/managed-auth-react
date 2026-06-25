@@ -56,12 +56,40 @@ export interface SignInOption {
   description?: string | null;
 }
 
+export interface ManagedAuthField {
+  ref: string;
+  type: "identifier" | "password" | "code" | "totp_code" | "totp_secret" | "text";
+  label?: string;
+  required?: boolean;
+}
+
+export type ManagedAuthChoiceType =
+  | "mfa_method"
+  | "sso_provider"
+  | "sign_in_method"
+  | "auth_method"
+  | "identifier_method"
+  | "account"
+  | "other";
+
+export interface ManagedAuthChoice {
+  id: string;
+  type: ManagedAuthChoiceType;
+  label: string;
+  description?: string | null;
+  observed_selector?: string | null;
+  display_text?: string | null;
+  context?: string | null;
+}
+
 export interface ManagedAuthStateEventData {
   event: "managed_auth_state";
   timestamp: string;
   flow_status: FlowStatus;
   flow_step: FlowStep;
   flow_type?: "LOGIN" | "REAUTH";
+  fields?: ManagedAuthField[];
+  choices?: ManagedAuthChoice[];
   discovered_fields?: DiscoveredField[];
   mfa_options?: MFAOption[];
   sign_in_options?: SignInOption[];
@@ -82,6 +110,8 @@ export interface ManagedAuthResponse {
   flow_status: FlowStatus;
   flow_step: FlowStep;
   flow_type?: "LOGIN" | "REAUTH" | null;
+  fields?: ManagedAuthField[] | null;
+  choices?: ManagedAuthChoice[] | null;
   discovered_fields?: DiscoveredField[] | null;
   pending_sso_buttons?: SSOButton[] | null;
   mfa_options?: MFAOption[] | null;

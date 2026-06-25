@@ -14,8 +14,13 @@ import {
 import type {
   AuthErrorPayload,
   AuthSuccessPayload,
+  DiscoveredField,
+  ManagedAuthChoice,
+  ManagedAuthField,
   ManagedAuthResponse,
   MFAType,
+  MFAOption,
+  SignInOption,
   SSOButton,
   UIState,
 } from "../lib/types";
@@ -57,6 +62,8 @@ function mergeStateEvent(
     flow_status: ev.flow_status,
     flow_step: ev.flow_step,
     flow_type: ev.flow_type ?? base.flow_type ?? null,
+    fields: ev.fields ?? null,
+    choices: ev.choices ?? null,
     discovered_fields: ev.discovered_fields ?? null,
     pending_sso_buttons: ev.pending_sso_buttons ?? null,
     mfa_options: ev.mfa_options ?? null,
@@ -68,6 +75,74 @@ function mergeStateEvent(
     post_login_url: ev.post_login_url ?? base.post_login_url ?? null,
     live_view_url: ev.live_view_url ?? base.live_view_url ?? null,
     hosted_url: ev.hosted_url ?? base.hosted_url ?? null,
+  };
+}
+
+function fieldTypeToDiscoveredType(field: ManagedAuthField): DiscoveredField["type"] {
+  switch (field.type) {
+    case "identifier":
+      return "email";
+    case "totp_code":
+      return "totp";
+    case "totp_secret":
+      return "text";
+    default:
+      return field.type;
+  }
+}
+
+function fieldsFromCanonical(fields?: ManagedAuthField[] | null): DiscoveredField[] | null {
+  if (!fields) return null;
+  return fields.map((field) => ({
+    name: field.ref,
+    type: fieldTypeToDiscoveredType(field),
+    label: field.label || field.ref,
+    required: field.required ?? true,
+  }));
+}
+
+function ssoButtonsFromCanonical(choices?: ManagedAuthChoice[] | null): SSOButton[] | null {
+  if (!choices) return null;
+  return choices
+    .filter((choice) => choice.type === "sso_provider")
+    .map((choice) => ({
+      provider: choice.id,
+      selector: choice.observed_selector || choice.id,
+      label: choice.label,
+    }));
+}
+
+function mfaOptionsFromCanonical(choices?: ManagedAuthChoice[] | null): MFAOption[] | null {
+  if (!choices) return null;
+  return choices
+    .filter((choice) => choice.type === "mfa_method")
+    .map((choice) => ({
+      type: choice.id as MFAType,
+      label: choice.label,
+      description: choice.description ?? undefined,
+    }));
+}
+
+function signInOptionsFromCanonical(choices?: ManagedAuthChoice[] | null): SignInOption[] | null {
+  if (!choices) return null;
+  return choices
+    .filter((choice) => choice.type !== "sso_provider" && choice.type !== "mfa_method")
+    .map((choice) => ({
+      id: choice.id,
+      label: choice.label,
+      description: choice.description ?? choice.context ?? choice.display_text ?? null,
+    }));
+}
+
+function normalizeManagedAuthState(state: ManagedAuthResponse): ManagedAuthResponse {
+  return {
+    ...state,
+    // Prefer the canonical contract when present; legacy fields stay as fallback
+    // during the deprecation period.
+    discovered_fields: fieldsFromCanonical(state.fields) ?? state.discovered_fields,
+    pending_sso_buttons: ssoButtonsFromCanonical(state.choices) ?? state.pending_sso_buttons,
+    mfa_options: mfaOptionsFromCanonical(state.choices) ?? state.mfa_options,
+    sign_in_options: signInOptionsFromCanonical(state.choices) ?? state.sign_in_options,
   };
 }
 
@@ -167,7 +242,7 @@ export function useManagedAuthSession(
         setSubmitError(null);
         const base = stateRef.current;
         if (!base) return;
-        const merged = mergeStateEvent(base, ev);
+        const merged = normalizeManagedAuthState(mergeStateEvent(base, ev));
         stateRef.current = merged;
         setState(merged);
         const nextUI = deriveUIState(merged);
@@ -214,7 +289,7 @@ export function useManagedAuthSession(
         const gen = generationRef.current;
         if (terminalRef.current) return;
         try {
-          const fresh = await retrieveManagedAuth(sessionId, t, options);
+          const fresh = normalizeManagedAuthState(await retrieveManagedAuth(sessionId, t, options));
           if (gen !== generationRef.current) return;
           if (terminalRef.current) return;
           stateRef.current = fresh;
@@ -338,7 +413,7 @@ export function useManagedAuthSession(
         );
         if (exchangeRef.current !== ref || !ref.active) return;
         setJwt(token);
-        const initial = await retrieveManagedAuth(sessionId, token, options);
+        const initial = normalizeManagedAuthState(await retrieveManagedAuth(sessionId, token, options));
         if (exchangeRef.current !== ref || !ref.active) return;
         stateRef.current = initial;
         setState(initial);

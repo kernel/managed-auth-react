@@ -154,12 +154,7 @@ export function submitSSOButton(
   selector: string,
   options?: ApiClientOptions,
 ): Promise<void> {
-  return submit(
-    id,
-    jwt,
-    { sso_button_selector: selector },
-    options,
-  );
+  return submit(id, jwt, { sso_button_selector: selector }, options);
 }
 
 export function submitMFASelection(
@@ -177,12 +172,7 @@ export function submitSignInOption(
   signInOptionId: string,
   options?: ApiClientOptions,
 ): Promise<void> {
-  return submit(
-    id,
-    jwt,
-    { sign_in_option_id: signInOptionId },
-    options,
-  );
+  return submit(id, jwt, { sign_in_option_id: signInOptionId }, options);
 }
 
 /** Callbacks for the SSE event stream. */

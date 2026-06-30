@@ -64,12 +64,13 @@ function mergeStateEvent(
     flow_status: ev.flow_status,
     flow_step: ev.flow_step,
     flow_type: ev.flow_type ?? base.flow_type ?? null,
-    fields: ev.fields ?? null,
-    choices: ev.choices ?? null,
-    discovered_fields: ev.discovered_fields ?? null,
-    pending_sso_buttons: ev.pending_sso_buttons ?? null,
-    mfa_options: ev.mfa_options ?? null,
-    sign_in_options: ev.sign_in_options ?? null,
+    fields: ev.fields ?? base.fields ?? null,
+    choices: ev.choices ?? base.choices ?? null,
+    discovered_fields: ev.discovered_fields ?? base.discovered_fields ?? null,
+    pending_sso_buttons:
+      ev.pending_sso_buttons ?? base.pending_sso_buttons ?? null,
+    mfa_options: ev.mfa_options ?? base.mfa_options ?? null,
+    sign_in_options: ev.sign_in_options ?? base.sign_in_options ?? null,
     external_action_message: ev.external_action_message ?? null,
     website_error: ev.website_error ?? null,
     error_message: ev.error_message ?? null,
@@ -80,7 +81,9 @@ function mergeStateEvent(
   };
 }
 
-function fieldTypeToDiscoveredType(field: ManagedAuthField): DiscoveredField["type"] {
+function fieldTypeToDiscoveredType(
+  field: ManagedAuthField,
+): DiscoveredField["type"] {
   switch (field.type) {
     case "identifier":
       return "email";
@@ -93,8 +96,10 @@ function fieldTypeToDiscoveredType(field: ManagedAuthField): DiscoveredField["ty
   }
 }
 
-function fieldsFromCanonical(fields?: ManagedAuthField[] | null): DiscoveredField[] | null {
-  if (!fields) return null;
+function fieldsFromCanonical(
+  fields?: ManagedAuthField[] | null,
+): DiscoveredField[] | null {
+  if (!fields?.length) return null;
   return fields.map((field) => ({
     id: field.id,
     ref: field.ref,
@@ -105,9 +110,11 @@ function fieldsFromCanonical(fields?: ManagedAuthField[] | null): DiscoveredFiel
   }));
 }
 
-function ssoButtonsFromCanonical(choices?: ManagedAuthChoice[] | null): SSOButton[] | null {
-  if (!choices) return null;
-  return choices
+function ssoButtonsFromCanonical(
+  choices?: ManagedAuthChoice[] | null,
+): SSOButton[] | null {
+  if (!choices?.length) return null;
+  const buttons = choices
     .filter((choice) => choice.type === "sso_provider")
     .map((choice) => ({
       id: choice.id,
@@ -115,39 +122,55 @@ function ssoButtonsFromCanonical(choices?: ManagedAuthChoice[] | null): SSOButto
       selector: choice.observed_selector || choice.id,
       label: choice.label,
     }));
+  return buttons.length ? buttons : null;
 }
 
-function mfaOptionsFromCanonical(choices?: ManagedAuthChoice[] | null): MFAOption[] | null {
-  if (!choices) return null;
-  return choices
+function mfaOptionsFromCanonical(
+  choices?: ManagedAuthChoice[] | null,
+): MFAOption[] | null {
+  if (!choices?.length) return null;
+  const options = choices
     .filter((choice) => choice.type === "mfa_method")
     .map((choice) => ({
       type: choice.id as MFAType,
       label: choice.label,
       description: choice.description ?? undefined,
     }));
+  return options.length ? options : null;
 }
 
-function signInOptionsFromCanonical(choices?: ManagedAuthChoice[] | null): SignInOption[] | null {
-  if (!choices) return null;
-  return choices
-    .filter((choice) => choice.type !== "sso_provider" && choice.type !== "mfa_method")
+function signInOptionsFromCanonical(
+  choices?: ManagedAuthChoice[] | null,
+): SignInOption[] | null {
+  if (!choices?.length) return null;
+  const options = choices
+    .filter(
+      (choice) =>
+        choice.type !== "sso_provider" && choice.type !== "mfa_method",
+    )
     .map((choice) => ({
       id: choice.id,
       label: choice.label,
-      description: choice.description ?? choice.context ?? choice.display_text ?? null,
+      description:
+        choice.description ?? choice.context ?? choice.display_text ?? null,
     }));
+  return options.length ? options : null;
 }
 
-function normalizeManagedAuthState(state: ManagedAuthResponse): ManagedAuthResponse {
+function normalizeManagedAuthState(
+  state: ManagedAuthResponse,
+): ManagedAuthResponse {
   return {
     ...state,
     // Prefer the canonical contract when present; legacy fields stay as fallback
     // during the deprecation period.
-    discovered_fields: fieldsFromCanonical(state.fields) ?? state.discovered_fields,
-    pending_sso_buttons: ssoButtonsFromCanonical(state.choices) ?? state.pending_sso_buttons,
+    discovered_fields:
+      fieldsFromCanonical(state.fields) ?? state.discovered_fields,
+    pending_sso_buttons:
+      ssoButtonsFromCanonical(state.choices) ?? state.pending_sso_buttons,
     mfa_options: mfaOptionsFromCanonical(state.choices) ?? state.mfa_options,
-    sign_in_options: signInOptionsFromCanonical(state.choices) ?? state.sign_in_options,
+    sign_in_options:
+      signInOptionsFromCanonical(state.choices) ?? state.sign_in_options,
   };
 }
 
@@ -294,7 +317,9 @@ export function useManagedAuthSession(
         const gen = generationRef.current;
         if (terminalRef.current) return;
         try {
-          const fresh = normalizeManagedAuthState(await retrieveManagedAuth(sessionId, t, options));
+          const fresh = normalizeManagedAuthState(
+            await retrieveManagedAuth(sessionId, t, options),
+          );
           if (gen !== generationRef.current) return;
           if (terminalRef.current) return;
           stateRef.current = fresh;
@@ -418,7 +443,9 @@ export function useManagedAuthSession(
         );
         if (exchangeRef.current !== ref || !ref.active) return;
         setJwt(token);
-        const initial = normalizeManagedAuthState(await retrieveManagedAuth(sessionId, token, options));
+        const initial = normalizeManagedAuthState(
+          await retrieveManagedAuth(sessionId, token, options),
+        );
         if (exchangeRef.current !== ref || !ref.active) return;
         stateRef.current = initial;
         setState(initial);

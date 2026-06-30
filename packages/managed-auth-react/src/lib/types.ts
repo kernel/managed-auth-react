@@ -62,7 +62,13 @@ export interface SignInOption {
 export interface ManagedAuthField {
   id: string;
   ref: string;
-  type: "identifier" | "password" | "code" | "totp_code" | "totp_secret" | "text";
+  type:
+    | "identifier"
+    | "password"
+    | "code"
+    | "totp_code"
+    | "totp_secret"
+    | "text";
   label?: string;
   required?: boolean;
   observed_selector?: string | null;

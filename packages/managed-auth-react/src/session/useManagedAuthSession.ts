@@ -125,6 +125,35 @@ function ssoButtonsFromCanonical(
   return buttons.length ? buttons : null;
 }
 
+function normalizeMFAChoiceId(id: string): MFAType {
+  switch (id.trim().toLowerCase()) {
+    case "sms_code":
+    case "sms":
+      return "sms";
+    case "email_code":
+    case "email":
+      return "email";
+    case "totp_code":
+    case "totp":
+    case "authenticator":
+    case "authenticator_app":
+      return "totp";
+    case "phone_call":
+    case "call":
+      return "call";
+    case "push":
+      return "push";
+    case "password":
+      return "password";
+    case "passkey":
+      return "passkey";
+    case "switch":
+      return "switch";
+    default:
+      return "other";
+  }
+}
+
 function mfaOptionsFromCanonical(
   choices?: ManagedAuthChoice[] | null,
 ): MFAOption[] | null {
@@ -132,7 +161,7 @@ function mfaOptionsFromCanonical(
   const options = choices
     .filter((choice) => choice.type === "mfa_method")
     .map((choice) => ({
-      type: choice.id as MFAType,
+      type: normalizeMFAChoiceId(choice.id),
       label: choice.label,
       description: choice.description ?? undefined,
     }));

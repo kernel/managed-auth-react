@@ -64,13 +64,17 @@ function mergeStateEvent(
     flow_status: ev.flow_status,
     flow_step: ev.flow_step,
     flow_type: ev.flow_type ?? base.flow_type ?? null,
-    fields: ev.fields ?? base.fields ?? null,
-    choices: ev.choices ?? base.choices ?? null,
-    discovered_fields: ev.discovered_fields ?? base.discovered_fields ?? null,
-    pending_sso_buttons:
-      ev.pending_sso_buttons ?? base.pending_sso_buttons ?? null,
-    mfa_options: ev.mfa_options ?? base.mfa_options ?? null,
-    sign_in_options: ev.sign_in_options ?? base.sign_in_options ?? null,
+    // State events carry a complete snapshot of the awaiting-input state:
+    // the server omits fields/choices when the current step has none, so an
+    // absent key means "cleared", not "unchanged". Falling back to the prior
+    // state here leaks a previous step's inputs (e.g. login SSO buttons
+    // rendering on the MFA step).
+    fields: ev.fields ?? null,
+    choices: ev.choices ?? null,
+    discovered_fields: ev.discovered_fields ?? null,
+    pending_sso_buttons: ev.pending_sso_buttons ?? null,
+    mfa_options: ev.mfa_options ?? null,
+    sign_in_options: ev.sign_in_options ?? null,
     external_action_message: ev.external_action_message ?? null,
     website_error: ev.website_error ?? null,
     error_message: ev.error_message ?? null,

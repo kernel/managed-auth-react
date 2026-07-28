@@ -91,19 +91,20 @@ export async function retrieveManagedAuth(
   return (await res.json()) as ManagedAuthResponse;
 }
 
-interface SubmitBody {
-  fields?: Record<string, string>;
+export interface ManagedAuthSubmitBody {
   field_values?: Record<string, string>;
   selected_choice_id?: string;
+  fields?: Record<string, string>;
   sso_button_selector?: string;
+  sso_provider?: string;
   mfa_option_id?: MFAType;
   sign_in_option_id?: string;
 }
 
-async function submit(
+export async function submitManagedAuth(
   id: string,
   jwt: string,
-  body: SubmitBody,
+  body: ManagedAuthSubmitBody,
   options?: ApiClientOptions,
 ): Promise<void> {
   const f = getFetch(options);
@@ -119,60 +120,6 @@ async function submit(
     const msg = await parseError(res);
     throw new ManagedAuthApiError(msg, res.status, msg);
   }
-}
-
-export function submitFieldValues(
-  id: string,
-  jwt: string,
-  fields: Record<string, string>,
-  options?: ApiClientOptions,
-): Promise<void> {
-  return submit(id, jwt, { fields }, options);
-}
-
-export function submitCanonicalFieldValues(
-  id: string,
-  jwt: string,
-  fieldValues: Record<string, string>,
-  options?: ApiClientOptions,
-): Promise<void> {
-  return submit(id, jwt, { field_values: fieldValues }, options);
-}
-
-export function submitSelectedChoice(
-  id: string,
-  jwt: string,
-  selectedChoiceId: string,
-  options?: ApiClientOptions,
-): Promise<void> {
-  return submit(id, jwt, { selected_choice_id: selectedChoiceId }, options);
-}
-
-export function submitSSOButton(
-  id: string,
-  jwt: string,
-  selector: string,
-  options?: ApiClientOptions,
-): Promise<void> {
-  return submit(id, jwt, { sso_button_selector: selector }, options);
-}
-
-export function submitMFASelection(
-  id: string,
-  jwt: string,
-  mfaType: MFAType,
-  options?: ApiClientOptions,
-): Promise<void> {
-  return submit(id, jwt, { mfa_option_id: mfaType }, options);
-}
-
-export function submitSignInOption(
-  id: string,
-  jwt: string,
-  signInOptionId: string,
-  options?: ApiClientOptions,
-): Promise<void> {
-  return submit(id, jwt, { sign_in_option_id: signInOptionId }, options);
 }
 
 /** Callbacks for the SSE event stream. */

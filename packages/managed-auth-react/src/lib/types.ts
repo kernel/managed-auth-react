@@ -47,6 +47,7 @@ export interface SSOButton {
 }
 
 export interface MFAOption {
+  id?: string;
   type: MFAType;
   label?: string;
   target?: string;
@@ -89,8 +90,6 @@ export interface ManagedAuthChoice {
   label: string;
   description?: string | null;
   observed_selector?: string | null;
-  display_text?: string | null;
-  context?: string | null;
 }
 
 export interface ManagedAuthStateEventData {

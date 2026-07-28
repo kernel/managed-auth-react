@@ -41,6 +41,9 @@ jobs:
       - name: Typecheck
         run: bun run typecheck
 
+      - name: Test
+        run: bun run test
+
       # Dry-run npm pack so we catch missing files / bad exports BEFORE a
       # tagged release tries to publish. Exits non-zero if e.g. dist/ is
       # missing from `files` or an export points at a non-existent path.

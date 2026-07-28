@@ -38,7 +38,7 @@ interface UnifiedAuthFormProps {
   signInOptions?: SignInOption[];
   onSubmitFields: (credentials: Record<string, string>) => void;
   onSSOClick: (ssoButton: SSOButton) => void;
-  onMFASelect: (mfaType: MFAType) => void;
+  onMFASelect: (mfaType: MFAType, choiceId?: string) => void;
   onSignInOptionSelect: (optionId: string) => void;
   isLoading?: boolean;
   errorMessage?: string | null;
@@ -196,11 +196,11 @@ export function UnifiedAuthForm({
     <div className="kma-options">
       {sortedMFAOptions.map((option, idx) => (
         <Button
-          key={idx}
+          key={option.id ?? `${option.type}:${idx}`}
           variant="secondary"
           slotKey="mfaOption"
           className="kma-option"
-          onClick={() => onMFASelect(option.type)}
+          onClick={() => onMFASelect(option.type, option.id)}
           disabled={isLoading}
         >
           <span

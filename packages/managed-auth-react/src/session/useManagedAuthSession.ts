@@ -4,28 +4,25 @@ import {
   ManagedAuthApiError,
   retrieveManagedAuth,
   streamManagedAuthEvents,
-  submitFieldValues,
-  submitCanonicalFieldValues,
-  submitMFASelection,
-  submitSelectedChoice,
-  submitSignInOption,
-  submitSSOButton,
+  submitManagedAuth,
   type ApiClientOptions,
   type ManagedAuthStateEventData,
 } from "../lib/api";
 import type {
   AuthErrorPayload,
   AuthSuccessPayload,
-  DiscoveredField,
-  ManagedAuthChoice,
-  ManagedAuthField,
   ManagedAuthResponse,
   MFAType,
-  MFAOption,
-  SignInOption,
   SSOButton,
   UIState,
 } from "../lib/types";
+import { mergeStateEvent, normalizeManagedAuthState } from "./state";
+import {
+  buildFieldSubmission,
+  buildMFASubmission,
+  buildSignInSubmission,
+  buildSSOSubmission,
+} from "./submission";
 
 const RECONNECT_BASE_MS = 1000;
 const RECONNECT_MAX_MS = 15000;
@@ -55,158 +52,6 @@ function isTerminal(uiState: UIState): boolean {
   return uiState === "success" || uiState === "expired" || uiState === "error";
 }
 
-function mergeStateEvent(
-  base: ManagedAuthResponse,
-  ev: ManagedAuthStateEventData,
-): ManagedAuthResponse {
-  return {
-    ...base,
-    flow_status: ev.flow_status,
-    flow_step: ev.flow_step,
-    flow_type: ev.flow_type ?? base.flow_type ?? null,
-    // State events carry a complete snapshot of the awaiting-input state:
-    // the server omits fields/choices when the current step has none, so an
-    // absent key means "cleared", not "unchanged". Falling back to the prior
-    // state here leaks a previous step's inputs (e.g. login SSO buttons
-    // rendering on the MFA step).
-    fields: ev.fields ?? null,
-    choices: ev.choices ?? null,
-    discovered_fields: ev.discovered_fields ?? null,
-    pending_sso_buttons: ev.pending_sso_buttons ?? null,
-    mfa_options: ev.mfa_options ?? null,
-    sign_in_options: ev.sign_in_options ?? null,
-    external_action_message: ev.external_action_message ?? null,
-    website_error: ev.website_error ?? null,
-    error_message: ev.error_message ?? null,
-    error_code: ev.error_code ?? null,
-    post_login_url: ev.post_login_url ?? base.post_login_url ?? null,
-    live_view_url: ev.live_view_url ?? base.live_view_url ?? null,
-    hosted_url: ev.hosted_url ?? base.hosted_url ?? null,
-  };
-}
-
-function fieldTypeToDiscoveredType(
-  field: ManagedAuthField,
-): DiscoveredField["type"] {
-  switch (field.type) {
-    case "identifier":
-      return "email";
-    case "totp_code":
-      return "totp";
-    case "totp_secret":
-      return "text";
-    default:
-      return field.type;
-  }
-}
-
-function fieldsFromCanonical(
-  fields?: ManagedAuthField[] | null,
-): DiscoveredField[] | null {
-  if (!fields?.length) return null;
-  return fields.map((field) => ({
-    id: field.id,
-    ref: field.ref,
-    name: field.id,
-    type: fieldTypeToDiscoveredType(field),
-    label: field.label || field.ref,
-    required: field.required ?? true,
-  }));
-}
-
-function ssoButtonsFromCanonical(
-  choices?: ManagedAuthChoice[] | null,
-): SSOButton[] | null {
-  if (!choices?.length) return null;
-  const buttons = choices
-    .filter((choice) => choice.type === "sso_provider")
-    .map((choice) => ({
-      id: choice.id,
-      provider: choice.id,
-      selector: choice.observed_selector || choice.id,
-      label: choice.label,
-    }));
-  return buttons.length ? buttons : null;
-}
-
-function normalizeMFAChoiceId(id: string): MFAType {
-  switch (id.trim().toLowerCase()) {
-    case "sms_code":
-    case "sms":
-      return "sms";
-    case "email_code":
-    case "email":
-      return "email";
-    case "totp_code":
-    case "totp":
-    case "authenticator":
-    case "authenticator_app":
-      return "totp";
-    case "phone_call":
-    case "call":
-      return "call";
-    case "push":
-      return "push";
-    case "password":
-      return "password";
-    case "passkey":
-      return "passkey";
-    case "switch":
-      return "switch";
-    default:
-      return "other";
-  }
-}
-
-function mfaOptionsFromCanonical(
-  choices?: ManagedAuthChoice[] | null,
-): MFAOption[] | null {
-  if (!choices?.length) return null;
-  const options = choices
-    .filter((choice) => choice.type === "mfa_method")
-    .map((choice) => ({
-      type: normalizeMFAChoiceId(choice.id),
-      label: choice.label,
-      description: choice.description ?? undefined,
-    }));
-  return options.length ? options : null;
-}
-
-function signInOptionsFromCanonical(
-  choices?: ManagedAuthChoice[] | null,
-): SignInOption[] | null {
-  if (!choices?.length) return null;
-  const options = choices
-    .filter(
-      (choice) =>
-        choice.type !== "sso_provider" && choice.type !== "mfa_method",
-    )
-    .map((choice) => ({
-      id: choice.id,
-      label: choice.label,
-      description:
-        choice.description ?? choice.context ?? choice.display_text ?? null,
-    }));
-  return options.length ? options : null;
-}
-
-function normalizeManagedAuthState(
-  state: ManagedAuthResponse,
-): ManagedAuthResponse {
-  return {
-    ...state,
-    // Prefer the canonical contract when present; legacy fields stay as fallback
-    // during the deprecation period.
-    discovered_fields:
-      fieldsFromCanonical(state.fields) ?? state.discovered_fields,
-    pending_sso_buttons:
-      ssoButtonsFromCanonical(state.choices) ?? state.pending_sso_buttons,
-    mfa_options: mfaOptionsFromCanonical(state.choices) ?? state.mfa_options,
-    sign_in_options:
-      signInOptionsFromCanonical(state.choices) ?? state.sign_in_options,
-  };
-}
-
 export interface ManagedAuthSessionOptions extends ApiClientOptions {
   sessionId: string;
   handoffCode: string;
@@ -226,7 +71,7 @@ export interface ManagedAuthSessionValue {
   startFlow: () => void;
   submitFields: (credentials: Record<string, string>) => Promise<void>;
   submitSSO: (button: SSOButton) => Promise<void>;
-  submitMFA: (mfaType: MFAType) => Promise<void>;
+  submitMFA: (mfaType: MFAType, choiceId?: string) => Promise<void>;
   submitSignIn: (optionId: string) => Promise<void>;
 }
 
@@ -550,12 +395,14 @@ export function useManagedAuthSession(
   const submitFields = useCallback(
     async (credentials: Record<string, string>) => {
       if (!jwt) return;
-      const hasCanonicalFields = (stateRef.current?.fields?.length ?? 0) > 0;
       return submit(
         () =>
-          hasCanonicalFields
-            ? submitCanonicalFieldValues(sessionId, jwt, credentials, options)
-            : submitFieldValues(sessionId, jwt, credentials, options),
+          submitManagedAuth(
+            sessionId,
+            jwt,
+            buildFieldSubmission(stateRef.current, credentials),
+            options,
+          ),
         "Failed to submit credentials",
       );
     },
@@ -567,9 +414,12 @@ export function useManagedAuthSession(
       if (!jwt) return;
       return submit(
         () =>
-          button.id
-            ? submitSelectedChoice(sessionId, jwt, button.id, options)
-            : submitSSOButton(sessionId, jwt, button.selector, options),
+          submitManagedAuth(
+            sessionId,
+            jwt,
+            buildSSOSubmission(button),
+            options,
+          ),
         "Failed to initiate SSO login",
       );
     },
@@ -577,10 +427,16 @@ export function useManagedAuthSession(
   );
 
   const submitMFA = useCallback(
-    async (mfaType: MFAType) => {
+    async (mfaType: MFAType, choiceId?: string) => {
       if (!jwt) return;
       return submit(
-        () => submitMFASelection(sessionId, jwt, mfaType, options),
+        () =>
+          submitManagedAuth(
+            sessionId,
+            jwt,
+            buildMFASubmission(mfaType, choiceId),
+            options,
+          ),
         "Failed to select verification method",
       );
     },
@@ -591,7 +447,13 @@ export function useManagedAuthSession(
     async (optionId: string) => {
       if (!jwt) return;
       return submit(
-        () => submitSignInOption(sessionId, jwt, optionId, options),
+        () =>
+          submitManagedAuth(
+            sessionId,
+            jwt,
+            buildSignInSubmission(stateRef.current, optionId),
+            options,
+          ),
         "Failed to select option",
       );
     },

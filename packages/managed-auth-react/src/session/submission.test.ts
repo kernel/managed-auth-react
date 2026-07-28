@@ -45,14 +45,17 @@ describe("managed auth submissions", () => {
         provider: "google",
         selector: "button.google",
       }),
-    ).toEqual({ sso_button_selector: "button.google" });
+    ).toEqual({ fields: {}, sso_button_selector: "button.google" });
   });
 
   test("preserves canonical MFA choice IDs instead of submitting normalized types", () => {
     expect(buildMFASubmission("other", "security_key_vendor")).toEqual({
       selected_choice_id: "security_key_vendor",
     });
-    expect(buildMFASubmission("sms")).toEqual({ mfa_option_id: "sms" });
+    expect(buildMFASubmission("sms")).toEqual({
+      fields: {},
+      mfa_option_id: "sms",
+    });
   });
 
   test("submits sign-in choices through the contract that produced them", () => {
@@ -60,6 +63,7 @@ describe("managed auth submissions", () => {
       buildSignInSubmission(managedAuthState({ choices: [] }), "work-account"),
     ).toEqual({ selected_choice_id: "work-account" });
     expect(buildSignInSubmission(managedAuthState(), "work-account")).toEqual({
+      fields: {},
       sign_in_option_id: "work-account",
     });
   });

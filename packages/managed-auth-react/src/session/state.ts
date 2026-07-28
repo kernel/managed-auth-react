@@ -39,8 +39,12 @@ function fieldTypeToDiscoveredType(
   field: ManagedAuthField,
 ): DiscoveredField["type"] {
   switch (field.type) {
-    case "identifier":
-      return "email";
+    case "identifier": {
+      const ref = field.ref.toLowerCase();
+      if (ref.includes("email")) return "email";
+      if (ref.includes("phone") || ref.includes("tel")) return "tel";
+      return "text";
+    }
     case "totp_code":
       return "totp";
     case "totp_secret":

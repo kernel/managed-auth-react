@@ -11,14 +11,16 @@ export function buildFieldSubmission(
 export function buildSSOSubmission(button: SSOButton): ManagedAuthSubmitBody {
   return button.id
     ? { selected_choice_id: button.id }
-    : { sso_button_selector: button.selector };
+    : { fields: {}, sso_button_selector: button.selector };
 }
 
 export function buildMFASubmission(
   type: MFAType,
   choiceId?: string,
 ): ManagedAuthSubmitBody {
-  return choiceId ? { selected_choice_id: choiceId } : { mfa_option_id: type };
+  return choiceId
+    ? { selected_choice_id: choiceId }
+    : { fields: {}, mfa_option_id: type };
 }
 
 export function buildSignInSubmission(
@@ -27,5 +29,5 @@ export function buildSignInSubmission(
 ): ManagedAuthSubmitBody {
   return state?.choices != null
     ? { selected_choice_id: optionId }
-    : { sign_in_option_id: optionId };
+    : { fields: {}, sign_in_option_id: optionId };
 }

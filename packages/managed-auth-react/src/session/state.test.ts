@@ -145,14 +145,26 @@ describe("normalizeManagedAuthState", () => {
     ]);
   });
 
-  test("projects canonical fields and non-MFA choices into the existing UI model", () => {
+  test("projects canonical identifier fields and non-MFA choices into the existing UI model", () => {
     const state = managedAuthState({
       fields: [
+        {
+          id: "field_username",
+          ref: "username",
+          type: "identifier",
+          label: "Username",
+        },
         {
           id: "field_email",
           ref: "email",
           type: "identifier",
-          label: "Email address",
+          label: "Email",
+        },
+        {
+          id: "field_phone",
+          ref: "phone_number",
+          type: "identifier",
+          label: "Phone",
         },
       ],
       choices: [
@@ -168,11 +180,27 @@ describe("normalizeManagedAuthState", () => {
     expect(normalizeManagedAuthState(state)).toMatchObject({
       discovered_fields: [
         {
+          id: "field_username",
+          ref: "username",
+          name: "field_username",
+          type: "text",
+          label: "Username",
+          required: true,
+        },
+        {
           id: "field_email",
           ref: "email",
           name: "field_email",
           type: "email",
-          label: "Email address",
+          label: "Email",
+          required: true,
+        },
+        {
+          id: "field_phone",
+          ref: "phone_number",
+          name: "field_phone",
+          type: "tel",
+          label: "Phone",
           required: true,
         },
       ],

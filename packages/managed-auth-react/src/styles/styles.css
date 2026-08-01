@@ -604,6 +604,12 @@
   color: var(--kma-color-muted-foreground);
 }
 
+.kma-input-rejected-notice {
+  margin: 0;
+  font-size: var(--kma-font-size-sm);
+  color: var(--kma-color-danger);
+}
+
 .kma-password-toggle {
   position: absolute;
   right: 10px;

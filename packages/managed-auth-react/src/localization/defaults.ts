@@ -42,6 +42,8 @@ export const DEFAULT_LOCALIZATION: Localizer = {
   orDivider: "or",
   passwordShow: "Show password",
   passwordHide: "Hide password",
+  fieldRejectedNotice:
+    "The saved value was rejected. Enter a new one to continue.",
   credentialSafetyNotice:
     "Your credentials are encrypted and sent directly from your browser. They are never shared with anyone or any LLM.",
   mfaTypeLabels: {

@@ -35,6 +35,7 @@ export interface DiscoveredField {
   type: "text" | "email" | "password" | "tel" | "code" | "totp";
   placeholder?: string;
   required?: boolean;
+  reason?: "missing" | "rejected";
   hint?: string;
   linked_mfa_type?: MFAType;
 }
@@ -73,6 +74,7 @@ export interface ManagedAuthField {
     | "text";
   label?: string;
   required?: boolean;
+  reason: "missing" | "rejected";
   hint?: string;
   observed_selector?: string | null;
 }

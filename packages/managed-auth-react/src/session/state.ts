@@ -57,17 +57,25 @@ function fieldTypeToDiscoveredType(
 
 function fieldsFromCanonical(
   fields: ManagedAuthField[],
+  legacyFields: DiscoveredField[] | null | undefined,
 ): DiscoveredField[] | null {
   if (!fields.length) return null;
-  return fields.map((field) => ({
-    id: field.id,
-    ref: field.ref,
-    name: field.id,
-    type: fieldTypeToDiscoveredType(field),
-    label: field.label || field.ref,
-    required: field.required ?? true,
-    hint: field.hint,
-  }));
+  return fields.map((field) => {
+    const legacyField = legacyFields?.find(
+      (candidate) => candidate.name === field.ref,
+    );
+    return {
+      id: field.id,
+      ref: field.ref,
+      name: field.id,
+      type: fieldTypeToDiscoveredType(field),
+      label: field.label || field.ref,
+      placeholder: legacyField?.placeholder,
+      required: field.required ?? true,
+      reason: field.reason,
+      hint: field.hint ?? legacyField?.hint,
+    };
+  });
 }
 
 function ssoButtonsFromCanonical(
@@ -177,7 +185,7 @@ export function normalizeManagedAuthState(
   return {
     ...state,
     discovered_fields: hasCanonicalFields
-      ? fieldsFromCanonical(state.fields ?? [])
+      ? fieldsFromCanonical(state.fields ?? [], state.discovered_fields)
       : state.discovered_fields,
     pending_sso_buttons: hasCanonicalChoices
       ? ssoButtonsFromCanonical(state.choices ?? [])

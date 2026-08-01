@@ -300,6 +300,11 @@ export function UnifiedAuthForm({
               }
             />
           )}
+          {field.reason === "rejected" && (
+            <p {...slot("inputRejectedNotice", "kma-input-rejected-notice")}>
+              {l.fieldRejectedNotice}
+            </p>
+          )}
           {field.hint && (
             <p {...slot("inputHint", "kma-input-hint")}>{field.hint}</p>
           )}

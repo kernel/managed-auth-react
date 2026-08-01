@@ -39,6 +39,7 @@ export interface Localization {
   orDivider?: string;
   passwordShow?: string;
   passwordHide?: string;
+  fieldRejectedNotice?: string;
   credentialSafetyNotice?: string;
   /** MFA type labels. */
   mfaTypeLabels?: Partial<Record<MFAType, string>>;

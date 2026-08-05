@@ -56,6 +56,7 @@ export interface MFAOption {
 
 export interface SignInOption {
   id: string;
+  type?: ManagedAuthChoiceType;
   label: string;
   description?: string | null;
 }
@@ -72,6 +73,7 @@ export interface ManagedAuthField {
     | "text";
   label?: string;
   required?: boolean;
+  hint?: string;
   observed_selector?: string | null;
 }
 
@@ -87,8 +89,12 @@ export type ManagedAuthChoiceType =
 export interface ManagedAuthChoice {
   id: string;
   type: ManagedAuthChoiceType;
+  mfa_type?: MFAType | null;
   label: string;
   description?: string | null;
+  masked_destination?: string | null;
+  display_text?: string | null;
+  context?: string | null;
   observed_selector?: string | null;
 }
 

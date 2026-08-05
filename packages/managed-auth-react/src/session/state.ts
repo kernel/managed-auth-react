@@ -65,6 +65,7 @@ function fieldsFromCanonical(
     type: fieldTypeToDiscoveredType(field),
     label: field.label || field.ref,
     required: field.required ?? true,
+    hint: field.hint,
   }));
 }
 
@@ -111,12 +112,17 @@ function normalizeMFAChoiceId(id: string): MFAType {
   }
 }
 
+function mfaTargetKey(type: MFAType, label: string | undefined) {
+  return `${type}\u0000${label ?? ""}`;
+}
+
 function legacyMFATargets(options: MFAOption[] | null | undefined) {
-  const targets = new Map<MFAType, Array<string | undefined>>();
+  const targets = new Map<string, Array<string | undefined>>();
   for (const option of options ?? []) {
-    const existing = targets.get(option.type) ?? [];
+    const key = mfaTargetKey(option.type, option.label);
+    const existing = targets.get(key) ?? [];
     existing.push(option.target);
-    targets.set(option.type, existing);
+    targets.set(key, existing);
   }
   return targets;
 }
@@ -129,14 +135,16 @@ function mfaOptionsFromCanonical(
   const options = choices
     .filter((choice) => choice.type === "mfa_method")
     .map((choice) => {
-      const type = normalizeMFAChoiceId(choice.id);
-      const target = targets.get(type)?.shift();
+      const type = choice.mfa_type ?? normalizeMFAChoiceId(choice.id);
+      const target =
+        choice.masked_destination ??
+        targets.get(mfaTargetKey(type, choice.label))?.shift();
       return {
         id: choice.id,
         type,
-        label: choice.label,
+        label: choice.display_text ?? choice.label,
         target,
-        description: choice.description ?? undefined,
+        description: choice.context ?? choice.description ?? undefined,
       };
     });
   return options.length ? options : null;
@@ -152,8 +160,9 @@ function signInOptionsFromCanonical(
     )
     .map((choice) => ({
       id: choice.id,
-      label: choice.label,
-      description: choice.description ?? null,
+      type: choice.type,
+      label: choice.display_text ?? choice.label,
+      description: choice.context ?? choice.description ?? null,
     }));
   return options.length ? options : null;
 }

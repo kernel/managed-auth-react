@@ -107,10 +107,20 @@ describe("normalizeManagedAuthState", () => {
     const state = managedAuthState({
       choices: [
         {
-          id: "sms_code",
+          id: "text-ending-4821",
           type: "mfa_method",
-          label: "Text me a code",
+          mfa_type: "sms",
+          label: "Text ending in 4821",
           description: "Six-digit code",
+          masked_destination: "***-***-4821",
+          display_text: "Personal phone",
+          context: "Primary number",
+        },
+        {
+          id: "text-ending-9930",
+          type: "mfa_method",
+          mfa_type: "sms",
+          label: "Text ending in 9930",
         },
         {
           id: "security_key_vendor",
@@ -121,19 +131,31 @@ describe("normalizeManagedAuthState", () => {
       mfa_options: [
         {
           type: "sms",
-          label: "Text me a code",
-          target: "***-***-5678",
+          label: "Stale first option",
+          target: "***-***-0000",
+        },
+        {
+          type: "sms",
+          label: "Text ending in 9930",
+          target: "***-***-9930",
         },
       ],
     });
 
     expect(normalizeManagedAuthState(state).mfa_options).toEqual([
       {
-        id: "sms_code",
+        id: "text-ending-4821",
         type: "sms",
-        label: "Text me a code",
-        target: "***-***-5678",
-        description: "Six-digit code",
+        label: "Personal phone",
+        target: "***-***-4821",
+        description: "Primary number",
+      },
+      {
+        id: "text-ending-9930",
+        type: "sms",
+        label: "Text ending in 9930",
+        target: "***-***-9930",
+        description: undefined,
       },
       {
         id: "security_key_vendor",
@@ -173,6 +195,8 @@ describe("normalizeManagedAuthState", () => {
           type: "account",
           label: "Work account",
           description: "user@example.com",
+          display_text: "Work profile",
+          context: "user@example.com",
         },
       ],
     });
@@ -207,7 +231,8 @@ describe("normalizeManagedAuthState", () => {
       sign_in_options: [
         {
           id: "work-account",
-          label: "Work account",
+          type: "account",
+          label: "Work profile",
           description: "user@example.com",
         },
       ],

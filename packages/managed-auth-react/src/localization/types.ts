@@ -31,6 +31,8 @@ export interface Localization {
   mfaSelectSubtitle?: string;
   signInSelectTitle?: string;
   signInSelectSubtitle?: string;
+  accountSelectTitle?: string;
+  accountSelectSubtitle?: string;
   submitButton?: string;
   submittingButton?: string;
   ssoButtonLabel?: (provider: string) => string;

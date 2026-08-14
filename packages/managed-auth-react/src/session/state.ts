@@ -19,6 +19,7 @@ export function mergeStateEvent(
     flow_status: event.flow_status,
     flow_step: event.flow_step,
     flow_type: event.flow_type ?? base.flow_type ?? null,
+    interaction_id: event.interaction_id ?? null,
     fields: event.fields ?? null,
     choices: event.choices ?? null,
     discovered_fields: event.discovered_fields ?? null,

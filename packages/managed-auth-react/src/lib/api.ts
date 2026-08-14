@@ -17,12 +17,20 @@ export class ManagedAuthApiError extends Error {
   public readonly status: number;
   public readonly body: string;
   public readonly fatal: boolean;
-  constructor(message: string, status: number, body: string, fatal = false) {
+  public readonly code?: string;
+  constructor(
+    message: string,
+    status: number,
+    body: string,
+    fatal = false,
+    code?: string,
+  ) {
     super(message);
     this.name = "ManagedAuthApiError";
     this.status = status;
     this.body = body;
     this.fatal = fatal;
+    this.code = code;
   }
 }
 
@@ -34,15 +42,40 @@ function getBaseUrl(options?: ApiClientOptions): string {
   return (options?.baseUrl ?? DEFAULT_BASE_URL).replace(/\/$/, "");
 }
 
-async function parseError(response: Response): Promise<string> {
-  const text = await response.text();
+interface ParsedApiError {
+  message: string;
+  code?: string;
+}
+
+async function parseError(response: Response): Promise<ParsedApiError> {
+  const body = await response.text();
   try {
-    const parsed = JSON.parse(text);
-    if (parsed && typeof parsed.message === "string") return parsed.message;
+    const parsed = JSON.parse(body) as unknown;
+    if (parsed && typeof parsed === "object") {
+      const error = parsed as { message?: unknown; code?: unknown };
+      return {
+        message:
+          typeof error.message === "string"
+            ? error.message
+            : body || response.statusText,
+        code: typeof error.code === "string" ? error.code : undefined,
+      };
+    }
+    return { message: body || response.statusText };
   } catch {
-    /* fall through */
+    return { message: body || response.statusText };
   }
-  return text || response.statusText;
+}
+
+async function responseError(response: Response): Promise<ManagedAuthApiError> {
+  const error = await parseError(response);
+  return new ManagedAuthApiError(
+    error.message,
+    response.status,
+    error.message,
+    false,
+    error.code,
+  );
 }
 
 export async function exchangeHandoffCode(
@@ -60,8 +93,7 @@ export async function exchangeHandoffCode(
     },
   );
   if (!res.ok) {
-    const msg = await parseError(res);
-    throw new ManagedAuthApiError(msg, res.status, msg);
+    throw await responseError(res);
   }
   const data = (await res.json()) as { jwt?: string };
   if (!data.jwt) {
@@ -85,13 +117,13 @@ export async function retrieveManagedAuth(
     headers: { Authorization: `Bearer ${jwt}` },
   });
   if (!res.ok) {
-    const msg = await parseError(res);
-    throw new ManagedAuthApiError(msg, res.status, msg);
+    throw await responseError(res);
   }
   return (await res.json()) as ManagedAuthResponse;
 }
 
 export interface ManagedAuthSubmitBody {
+  interaction_id?: string;
   field_values?: Record<string, string>;
   selected_choice_id?: string;
   fields?: Record<string, string>;
@@ -117,8 +149,7 @@ export async function submitManagedAuth(
     body: JSON.stringify(body),
   });
   if (!res.ok) {
-    const msg = await parseError(res);
-    throw new ManagedAuthApiError(msg, res.status, msg);
+    throw await responseError(res);
   }
 }
 
@@ -159,8 +190,7 @@ export function streamManagedAuthEvents(
     });
 
     if (!res.ok) {
-      const msg = await parseError(res);
-      handlers.onError(new ManagedAuthApiError(msg, res.status, msg));
+      handlers.onError(await responseError(res));
       return;
     }
 

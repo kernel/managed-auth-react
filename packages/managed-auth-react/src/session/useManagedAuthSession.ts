@@ -381,6 +381,45 @@ export function useManagedAuthSession(
         await fn();
       } catch (err) {
         const msg = err instanceof Error ? err.message : onFail;
+        if (
+          err instanceof ManagedAuthApiError &&
+          err.code === "stale_interaction"
+        ) {
+          try {
+            disconnectStream();
+            const fresh = normalizeManagedAuthState(
+              await retrieveManagedAuth(sessionId, jwt, options),
+            );
+            stateRef.current = fresh;
+            setState(fresh);
+            const nextUI = deriveUIState(fresh);
+            setUIState(nextUI);
+            setSubmitError(msg);
+            if (isTerminal(nextUI)) {
+              terminalRef.current = true;
+              if (nextUI === "success") {
+                fireSuccessOnce({
+                  profileName: fresh.profile_name,
+                  domain: fresh.domain,
+                });
+              } else {
+                fireErrorOnce({
+                  code: fresh.error_code ?? undefined,
+                  message:
+                    fresh.error_message ||
+                    fresh.website_error ||
+                    (nextUI === "expired" ? "Session expired" : "Login failed"),
+                });
+              }
+              disconnectStream();
+            } else {
+              connectStream(jwt);
+            }
+            return;
+          } catch {
+            connectStream(jwt);
+          }
+        }
         setSubmitError(msg);
         setUIState((current) =>
           isTerminal(current) ? current : "awaiting_input",
@@ -389,7 +428,15 @@ export function useManagedAuthSession(
         setIsSubmitting(false);
       }
     },
-    [jwt],
+    [
+      jwt,
+      sessionId,
+      options,
+      fireSuccessOnce,
+      fireErrorOnce,
+      disconnectStream,
+      connectStream,
+    ],
   );
 
   const submitFields = useCallback(
@@ -417,7 +464,7 @@ export function useManagedAuthSession(
           submitManagedAuth(
             sessionId,
             jwt,
-            buildSSOSubmission(button),
+            buildSSOSubmission(stateRef.current, button),
             options,
           ),
         "Failed to initiate SSO login",
@@ -434,7 +481,7 @@ export function useManagedAuthSession(
           submitManagedAuth(
             sessionId,
             jwt,
-            buildMFASubmission(mfaType, choiceId),
+            buildMFASubmission(stateRef.current, mfaType, choiceId),
             options,
           ),
         "Failed to select verification method",

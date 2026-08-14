@@ -21,6 +21,7 @@ function managedAuthState(
 describe("mergeStateEvent", () => {
   test("clears awaiting-input state omitted from the next snapshot", () => {
     const base = managedAuthState({
+      interaction_id: "mai_previous",
       fields: [
         {
           id: "field_email",
@@ -45,12 +46,31 @@ describe("mergeStateEvent", () => {
     };
 
     expect(mergeStateEvent(base, event)).toMatchObject({
+      interaction_id: null,
       fields: null,
       choices: null,
       discovered_fields: null,
       pending_sso_buttons: null,
       mfa_options: null,
       sign_in_options: null,
+    });
+  });
+
+  test("retains the interaction ID from an actionable state event", () => {
+    const event: ManagedAuthStateEventData = {
+      event: "managed_auth_state",
+      timestamp: "2026-07-28T00:00:00Z",
+      flow_status: "IN_PROGRESS",
+      flow_step: "AWAITING_INPUT",
+      interaction_id: "mai_current",
+      fields: [],
+      choices: [],
+    };
+
+    expect(mergeStateEvent(managedAuthState(), event)).toMatchObject({
+      interaction_id: "mai_current",
+      fields: [],
+      choices: [],
     });
   });
 });

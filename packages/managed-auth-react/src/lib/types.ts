@@ -104,6 +104,7 @@ export interface ManagedAuthStateEventData {
   flow_status: FlowStatus;
   flow_step: FlowStep;
   flow_type?: "LOGIN" | "REAUTH";
+  interaction_id?: string;
   fields?: ManagedAuthField[];
   choices?: ManagedAuthChoice[];
   discovered_fields?: DiscoveredField[];
@@ -126,6 +127,7 @@ export interface ManagedAuthResponse {
   flow_status: FlowStatus;
   flow_step: FlowStep;
   flow_type?: "LOGIN" | "REAUTH" | null;
+  interaction_id?: string | null;
   fields?: ManagedAuthField[] | null;
   choices?: ManagedAuthChoice[] | null;
   discovered_fields?: DiscoveredField[] | null;

@@ -374,12 +374,18 @@ export function useManagedAuthSession(
   const submit = useCallback(
     async (fn: () => Promise<void>, onFail: string) => {
       if (!jwt) return;
+      const generation = generationRef.current;
+      const isActive = () =>
+        generation === generationRef.current &&
+        exchangeRef.current?.active === true;
+
       setIsSubmitting(true);
       setSubmitError(null);
       setUIState("submitting");
       try {
         await fn();
       } catch (err) {
+        if (!isActive()) return;
         const msg = err instanceof Error ? err.message : onFail;
         if (
           err instanceof ManagedAuthApiError &&
@@ -390,6 +396,7 @@ export function useManagedAuthSession(
             const fresh = normalizeManagedAuthState(
               await retrieveManagedAuth(sessionId, jwt, options),
             );
+            if (!isActive()) return;
             stateRef.current = fresh;
             setState(fresh);
             const nextUI = deriveUIState(fresh);
@@ -416,7 +423,19 @@ export function useManagedAuthSession(
               connectStream(jwt);
             }
             return;
-          } catch {
+          } catch (refreshError) {
+            if (!isActive()) return;
+            const status =
+              refreshError instanceof ManagedAuthApiError
+                ? refreshError.status
+                : undefined;
+            if (status === 401 || status === 410) {
+              terminalRef.current = true;
+              setIsReconnecting(false);
+              setUIState("expired");
+              fireErrorOnce({ message: "Session expired" });
+              return;
+            }
             connectStream(jwt);
           }
         }
@@ -425,7 +444,7 @@ export function useManagedAuthSession(
           isTerminal(current) ? current : "awaiting_input",
         );
       } finally {
-        setIsSubmitting(false);
+        if (isActive()) setIsSubmitting(false);
       }
     },
     [

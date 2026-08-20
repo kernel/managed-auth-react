@@ -63,10 +63,17 @@ afterEach(() => {
 async function renderSession(
   refreshResponse: Promise<Response>,
   onError?: (message: string) => void,
+  submitResponse = Promise.resolve(
+    response(
+      { code: "stale_interaction", message: "Interaction is stale" },
+      400,
+    ),
+  ),
 ) {
   let retrieveRequests = 0;
   let streamRequests = 0;
   let value: ManagedAuthSessionValue | null = null;
+  const sessionRetrieveRequests = new Map<string, number>();
 
   const fetchImpl = (async (
     input: RequestInfo | URL,
@@ -78,24 +85,23 @@ async function renderSession(
       streamRequests++;
       return new Promise<Response>(() => {});
     }
-    if (url.endsWith("/submit")) {
-      return response(
-        { code: "stale_interaction", message: "Interaction is stale" },
-        400,
-      );
-    }
+    if (url.endsWith("/submit")) return submitResponse;
     if (init?.method === "GET") {
       retrieveRequests++;
-      if (retrieveRequests === 1) return response(awaitingInputState());
+      const sessionId = url.split("/auth/connections/")[1]?.split("/")[0];
+      if (!sessionId) throw new Error(`Missing session ID in ${url}`);
+      const count = (sessionRetrieveRequests.get(sessionId) ?? 0) + 1;
+      sessionRetrieveRequests.set(sessionId, count);
+      if (count === 1) return response(awaitingInputState());
       return refreshResponse;
     }
     throw new Error(`Unexpected request: ${init?.method} ${url}`);
   }) as typeof fetch;
 
-  function Harness() {
+  function Harness(props: { sessionId: string; handoffCode: string }) {
     value = useManagedAuthSession({
-      sessionId: "session-id",
-      handoffCode: "handoff-code",
+      sessionId: props.sessionId,
+      handoffCode: props.handoffCode,
       autoStart: true,
       fetch: fetchImpl,
       onError: onError ? ({ message }) => onError(message) : undefined,
@@ -104,7 +110,12 @@ async function renderSession(
   }
 
   await act(async () => {
-    renderer = create(createElement(Harness));
+    renderer = create(
+      createElement(Harness, {
+        sessionId: "session-id",
+        handoffCode: "handoff-code",
+      }),
+    );
     await flushPromises();
   });
 
@@ -118,6 +129,12 @@ async function renderSession(
     },
     get streamRequests() {
       return streamRequests;
+    },
+    async updateSession(sessionId: string, handoffCode: string) {
+      await act(async () => {
+        renderer?.update(createElement(Harness, { sessionId, handoffCode }));
+        await flushPromises();
+      });
     },
   };
 }
@@ -141,6 +158,28 @@ describe("useManagedAuthSession stale interaction recovery", () => {
     await act(async () => submission);
 
     expect(session.streamRequests).toBe(1);
+  });
+
+  test("clears the submitting state when the session changes", async () => {
+    const pendingSubmit = deferred<Response>();
+    const session = await renderSession(
+      Promise.resolve(response(awaitingInputState())),
+      undefined,
+      pendingSubmit.promise,
+    );
+
+    let submission!: Promise<void>;
+    act(() => {
+      submission = session.value.submitFields({ email: "person@example.com" });
+    });
+    expect(session.value.isSubmitting).toBe(true);
+
+    await session.updateSession("next-session-id", "next-handoff-code");
+    expect(session.value.isSubmitting).toBe(false);
+
+    pendingSubmit.resolve(response({}, 202));
+    await act(async () => submission);
+    expect(session.value.isSubmitting).toBe(false);
   });
 
   test.each([401, 410])(

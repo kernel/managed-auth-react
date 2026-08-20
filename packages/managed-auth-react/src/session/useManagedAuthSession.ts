@@ -308,6 +308,7 @@ export function useManagedAuthSession(
     terminalRef.current = false;
     reconnectAttemptsRef.current = 0;
     callbackFiredRef.current = { success: false, error: false };
+    setIsSubmitting(false);
 
     const ref = { key: exchangeKey, active: true };
     exchangeRef.current = ref;

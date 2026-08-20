@@ -1,5 +1,5 @@
 // Protocol types for Kernel managed auth.
-// Vendored from @onkernel/sdk to keep this package runtime-free.
+// Synchronized with @onkernel/sdk v0.93.0 and vendored to keep this package runtime-free.
 
 export type FlowStatus =
   | "PENDING"

@@ -7,6 +7,7 @@
       "devDependencies": {
         "@changesets/changelog-github": "0.7.0",
         "@changesets/cli": "^2.27.0",
+        "@onkernel/sdk": "0.93.0",
         "@types/bun": "1.2.21",
         "@types/node": "^20",
         "@types/react-test-renderer": "18.3.1",
@@ -207,6 +208,8 @@
     "@onkernel/managed-auth-react": ["@onkernel/managed-auth-react@workspace:packages/managed-auth-react"],
 
     "@onkernel/managed-auth-react-demo": ["@onkernel/managed-auth-react-demo@workspace:packages/demo"],
+
+    "@onkernel/sdk": ["@onkernel/sdk@0.93.0", "", {}, "sha512-Hb28fq/XGoDbJGOZXHX7MPdFbBs9OtVER44Xo1p6VT4123xpQMVHCGdR4AdW2KuEEwJpXd1yxuTn0GPvUG8dXw=="],
 
     "@rolldown/pluginutils": ["@rolldown/pluginutils@1.0.0-beta.27", "", {}, "sha512-+d0F4MKMCbeVUJwG96uQ4SgAznZNSq93I3V+9NHA4OpvqG8mRCpGdKmK8l/dl02h2CCDHwW2FqilnTyDcAnqjA=="],
 

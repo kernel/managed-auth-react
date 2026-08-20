@@ -3,8 +3,8 @@
 One drop-in React component for [Kernel](https://onkernel.com) managed auth. Plug in your session, customize every element, ship.
 
 ```bash
-bun add @onkernel/managed-auth-react
-# or: npm install @onkernel/managed-auth-react
+bun add @onkernel/managed-auth-react @onkernel/sdk@latest
+# or: npm install @onkernel/managed-auth-react @onkernel/sdk@latest
 ```
 
 ## Quick start

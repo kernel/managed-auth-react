@@ -36,7 +36,7 @@ function getMFAIcon(type: MFAType) {
 interface ExternalActionWaitingProps {
   message?: string | null;
   mfaOptions?: MFAOption[];
-  onMFASelect?: (mfaType: MFAType) => void;
+  onMFASelect?: (mfaType: MFAType, choiceId?: string) => void;
   isLoading?: boolean;
 }
 
@@ -91,11 +91,11 @@ export function ExternalActionWaiting({
         <div className="kma-external-action__alternatives">
           {mfaOptions.map((option, idx) => (
             <Button
-              key={idx}
+              key={option.id ?? `${option.type}:${idx}`}
               variant="secondary"
               slotKey="mfaOption"
               className="kma-option"
-              onClick={() => onMFASelect(option.type)}
+              onClick={() => onMFASelect(option.type, option.id)}
               disabled={isLoading}
             >
               <span

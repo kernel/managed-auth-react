@@ -34,6 +34,8 @@ export const DEFAULT_LOCALIZATION: Localizer = {
   mfaSelectSubtitle: "Select how you'd like to receive your verification code",
   signInSelectTitle: "Choose an option",
   signInSelectSubtitle: "Select which option to continue with",
+  accountSelectTitle: "Choose an account",
+  accountSelectSubtitle: "Select which account to continue with",
   submitButton: "Continue",
   submittingButton: "Signing in...",
   ssoButtonLabel: (provider) => `Sign in with ${provider}`,

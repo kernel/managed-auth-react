@@ -43,6 +43,9 @@ export type {
   SignInOption,
   FlowStatus,
   FlowStep,
+  ManagedAuthChoice,
+  ManagedAuthChoiceType,
+  ManagedAuthField,
   ManagedAuthResponse,
   UIState,
 } from "./lib/types";

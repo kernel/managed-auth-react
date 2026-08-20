@@ -4,10 +4,7 @@ import {
   ManagedAuthApiError,
   retrieveManagedAuth,
   streamManagedAuthEvents,
-  submitFieldValues,
-  submitMFASelection,
-  submitSignInOption,
-  submitSSOButton,
+  submitManagedAuth,
   type ApiClientOptions,
   type ManagedAuthStateEventData,
 } from "../lib/api";
@@ -19,6 +16,13 @@ import type {
   SSOButton,
   UIState,
 } from "../lib/types";
+import { mergeStateEvent, normalizeManagedAuthState } from "./state";
+import {
+  buildFieldSubmission,
+  buildMFASubmission,
+  buildSignInSubmission,
+  buildSSOSubmission,
+} from "./submission";
 
 const RECONNECT_BASE_MS = 1000;
 const RECONNECT_MAX_MS = 15000;
@@ -48,29 +52,6 @@ function isTerminal(uiState: UIState): boolean {
   return uiState === "success" || uiState === "expired" || uiState === "error";
 }
 
-function mergeStateEvent(
-  base: ManagedAuthResponse,
-  ev: ManagedAuthStateEventData,
-): ManagedAuthResponse {
-  return {
-    ...base,
-    flow_status: ev.flow_status,
-    flow_step: ev.flow_step,
-    flow_type: ev.flow_type ?? base.flow_type ?? null,
-    discovered_fields: ev.discovered_fields ?? null,
-    pending_sso_buttons: ev.pending_sso_buttons ?? null,
-    mfa_options: ev.mfa_options ?? null,
-    sign_in_options: ev.sign_in_options ?? null,
-    external_action_message: ev.external_action_message ?? null,
-    website_error: ev.website_error ?? null,
-    error_message: ev.error_message ?? null,
-    error_code: ev.error_code ?? null,
-    post_login_url: ev.post_login_url ?? base.post_login_url ?? null,
-    live_view_url: ev.live_view_url ?? base.live_view_url ?? null,
-    hosted_url: ev.hosted_url ?? base.hosted_url ?? null,
-  };
-}
-
 export interface ManagedAuthSessionOptions extends ApiClientOptions {
   sessionId: string;
   handoffCode: string;
@@ -90,7 +71,7 @@ export interface ManagedAuthSessionValue {
   startFlow: () => void;
   submitFields: (credentials: Record<string, string>) => Promise<void>;
   submitSSO: (button: SSOButton) => Promise<void>;
-  submitMFA: (mfaType: MFAType) => Promise<void>;
+  submitMFA: (mfaType: MFAType, choiceId?: string) => Promise<void>;
   submitSignIn: (optionId: string) => Promise<void>;
 }
 
@@ -167,7 +148,7 @@ export function useManagedAuthSession(
         setSubmitError(null);
         const base = stateRef.current;
         if (!base) return;
-        const merged = mergeStateEvent(base, ev);
+        const merged = normalizeManagedAuthState(mergeStateEvent(base, ev));
         stateRef.current = merged;
         setState(merged);
         const nextUI = deriveUIState(merged);
@@ -214,7 +195,9 @@ export function useManagedAuthSession(
         const gen = generationRef.current;
         if (terminalRef.current) return;
         try {
-          const fresh = await retrieveManagedAuth(sessionId, t, options);
+          const fresh = normalizeManagedAuthState(
+            await retrieveManagedAuth(sessionId, t, options),
+          );
           if (gen !== generationRef.current) return;
           if (terminalRef.current) return;
           stateRef.current = fresh;
@@ -325,6 +308,7 @@ export function useManagedAuthSession(
     terminalRef.current = false;
     reconnectAttemptsRef.current = 0;
     callbackFiredRef.current = { success: false, error: false };
+    setIsSubmitting(false);
 
     const ref = { key: exchangeKey, active: true };
     exchangeRef.current = ref;
@@ -338,7 +322,9 @@ export function useManagedAuthSession(
         );
         if (exchangeRef.current !== ref || !ref.active) return;
         setJwt(token);
-        const initial = await retrieveManagedAuth(sessionId, token, options);
+        const initial = normalizeManagedAuthState(
+          await retrieveManagedAuth(sessionId, token, options),
+        );
         if (exchangeRef.current !== ref || !ref.active) return;
         stateRef.current = initial;
         setState(initial);
@@ -389,29 +375,101 @@ export function useManagedAuthSession(
   const submit = useCallback(
     async (fn: () => Promise<void>, onFail: string) => {
       if (!jwt) return;
+      const generation = generationRef.current;
+      const isActive = () =>
+        generation === generationRef.current &&
+        exchangeRef.current?.active === true;
+
       setIsSubmitting(true);
       setSubmitError(null);
       setUIState("submitting");
       try {
         await fn();
       } catch (err) {
+        if (!isActive()) return;
         const msg = err instanceof Error ? err.message : onFail;
+        if (
+          err instanceof ManagedAuthApiError &&
+          err.code === "stale_interaction"
+        ) {
+          try {
+            disconnectStream();
+            const fresh = normalizeManagedAuthState(
+              await retrieveManagedAuth(sessionId, jwt, options),
+            );
+            if (!isActive()) return;
+            stateRef.current = fresh;
+            setState(fresh);
+            const nextUI = deriveUIState(fresh);
+            setUIState(nextUI);
+            setSubmitError(msg);
+            if (isTerminal(nextUI)) {
+              terminalRef.current = true;
+              if (nextUI === "success") {
+                fireSuccessOnce({
+                  profileName: fresh.profile_name,
+                  domain: fresh.domain,
+                });
+              } else {
+                fireErrorOnce({
+                  code: fresh.error_code ?? undefined,
+                  message:
+                    fresh.error_message ||
+                    fresh.website_error ||
+                    (nextUI === "expired" ? "Session expired" : "Login failed"),
+                });
+              }
+              disconnectStream();
+            } else {
+              connectStream(jwt);
+            }
+            return;
+          } catch (refreshError) {
+            if (!isActive()) return;
+            const status =
+              refreshError instanceof ManagedAuthApiError
+                ? refreshError.status
+                : undefined;
+            if (status === 401 || status === 410) {
+              terminalRef.current = true;
+              setIsReconnecting(false);
+              setUIState("expired");
+              fireErrorOnce({ message: "Session expired" });
+              return;
+            }
+            connectStream(jwt);
+          }
+        }
         setSubmitError(msg);
         setUIState((current) =>
           isTerminal(current) ? current : "awaiting_input",
         );
       } finally {
-        setIsSubmitting(false);
+        if (isActive()) setIsSubmitting(false);
       }
     },
-    [jwt],
+    [
+      jwt,
+      sessionId,
+      options,
+      fireSuccessOnce,
+      fireErrorOnce,
+      disconnectStream,
+      connectStream,
+    ],
   );
 
   const submitFields = useCallback(
     async (credentials: Record<string, string>) => {
       if (!jwt) return;
       return submit(
-        () => submitFieldValues(sessionId, jwt, credentials, options),
+        () =>
+          submitManagedAuth(
+            sessionId,
+            jwt,
+            buildFieldSubmission(stateRef.current, credentials),
+            options,
+          ),
         "Failed to submit credentials",
       );
     },
@@ -422,7 +480,13 @@ export function useManagedAuthSession(
     async (button: SSOButton) => {
       if (!jwt) return;
       return submit(
-        () => submitSSOButton(sessionId, jwt, button.selector, options),
+        () =>
+          submitManagedAuth(
+            sessionId,
+            jwt,
+            buildSSOSubmission(stateRef.current, button),
+            options,
+          ),
         "Failed to initiate SSO login",
       );
     },
@@ -430,10 +494,16 @@ export function useManagedAuthSession(
   );
 
   const submitMFA = useCallback(
-    async (mfaType: MFAType) => {
+    async (mfaType: MFAType, choiceId?: string) => {
       if (!jwt) return;
       return submit(
-        () => submitMFASelection(sessionId, jwt, mfaType, options),
+        () =>
+          submitManagedAuth(
+            sessionId,
+            jwt,
+            buildMFASubmission(stateRef.current, mfaType, choiceId),
+            options,
+          ),
         "Failed to select verification method",
       );
     },
@@ -444,7 +514,13 @@ export function useManagedAuthSession(
     async (optionId: string) => {
       if (!jwt) return;
       return submit(
-        () => submitSignInOption(sessionId, jwt, optionId, options),
+        () =>
+          submitManagedAuth(
+            sessionId,
+            jwt,
+            buildSignInSubmission(stateRef.current, optionId),
+            options,
+          ),
         "Failed to select option",
       );
     },

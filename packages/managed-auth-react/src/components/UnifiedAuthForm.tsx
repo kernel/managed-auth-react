@@ -38,7 +38,7 @@ interface UnifiedAuthFormProps {
   signInOptions?: SignInOption[];
   onSubmitFields: (credentials: Record<string, string>) => void;
   onSSOClick: (ssoButton: SSOButton) => void;
-  onMFASelect: (mfaType: MFAType) => void;
+  onMFASelect: (mfaType: MFAType, choiceId?: string) => void;
   onSignInOptionSelect: (optionId: string) => void;
   isLoading?: boolean;
   errorMessage?: string | null;
@@ -76,8 +76,8 @@ function getInputType(field: DiscoveredField): string {
   }
 }
 
-function getAutocomplete(field: DiscoveredField): string | undefined {
-  const name = field.name.toLowerCase();
+export function getAutocomplete(field: DiscoveredField): string | undefined {
+  const identity = (field.ref ?? field.name).toLowerCase();
   switch (field.type) {
     case "email":
       return "email";
@@ -89,7 +89,7 @@ function getAutocomplete(field: DiscoveredField): string | undefined {
     case "totp":
       return "one-time-code";
     default:
-      if (name.includes("user") || name.includes("identifier"))
+      if (identity.includes("user") || identity.includes("identifier"))
         return "username";
       return undefined;
   }
@@ -124,12 +124,17 @@ export function UnifiedAuthForm({
   const hasSignIn = signInOptions.length > 0;
 
   const onlySignIn = hasSignIn && !hasMFA && !hasFields && !hasSSO;
+  const onlyAccounts =
+    onlySignIn && signInOptions.every((option) => option.type === "account");
   const onlyMFA = hasMFA && !hasSignIn && !hasFields && !hasSSO;
 
   let title: ReactNode;
   let subtitle: string | undefined;
 
-  if (onlySignIn) {
+  if (onlyAccounts) {
+    title = l.accountSelectTitle;
+    subtitle = l.accountSelectSubtitle;
+  } else if (onlySignIn) {
     title = l.signInSelectTitle;
     subtitle = l.signInSelectSubtitle;
   } else if (onlyMFA) {
@@ -196,11 +201,11 @@ export function UnifiedAuthForm({
     <div className="kma-options">
       {sortedMFAOptions.map((option, idx) => (
         <Button
-          key={idx}
+          key={option.id ?? `${option.type}:${idx}`}
           variant="secondary"
           slotKey="mfaOption"
           className="kma-option"
-          onClick={() => onMFASelect(option.type)}
+          onClick={() => onMFASelect(option.type, option.id)}
           disabled={isLoading}
         >
           <span

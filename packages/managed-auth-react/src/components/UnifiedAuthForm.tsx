@@ -95,6 +95,17 @@ export function getAutocomplete(field: DiscoveredField): string | undefined {
   }
 }
 
+function getDescriptionIds(field: DiscoveredField): string | undefined {
+  const ids: string[] = [];
+  if (field.reason === "rejected") {
+    ids.push(`${field.name}-rejected-notice`);
+  }
+  if (field.hint) {
+    ids.push(`${field.name}-hint`);
+  }
+  return ids.length > 0 ? ids.join(" ") : undefined;
+}
+
 export function UnifiedAuthForm({
   targetDomain,
   ssoProvider,
@@ -257,6 +268,7 @@ export function UnifiedAuthForm({
                 placeholder={field.placeholder}
                 required={field.required}
                 autoComplete={getAutocomplete(field)}
+                aria-describedby={getDescriptionIds(field)}
                 value={formData[field.name] || ""}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -291,6 +303,7 @@ export function UnifiedAuthForm({
               placeholder={field.placeholder}
               required={field.required}
               autoComplete={getAutocomplete(field)}
+              aria-describedby={getDescriptionIds(field)}
               value={formData[field.name] || ""}
               onChange={(e) =>
                 setFormData((prev) => ({
@@ -300,8 +313,22 @@ export function UnifiedAuthForm({
               }
             />
           )}
+          {field.reason === "rejected" && (
+            <p
+              id={`${field.name}-rejected-notice`}
+              role="status"
+              {...slot("inputRejectedNotice", "kma-input-rejected-notice")}
+            >
+              {l.fieldRejectedNotice}
+            </p>
+          )}
           {field.hint && (
-            <p {...slot("inputHint", "kma-input-hint")}>{field.hint}</p>
+            <p
+              id={`${field.name}-hint`}
+              {...slot("inputHint", "kma-input-hint")}
+            >
+              {field.hint}
+            </p>
           )}
         </div>
       ))}

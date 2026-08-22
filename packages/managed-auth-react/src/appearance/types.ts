@@ -71,6 +71,8 @@ export interface AppearanceElements {
   input?: ElementValue;
   /** Small hint text under an input. */
   inputHint?: ElementValue;
+  /** Notice under an input whose saved value was rejected. */
+  inputRejectedNotice?: ElementValue;
   /** Password show/hide toggle button. */
   passwordToggle?: ElementValue;
   /** All buttons — base. */

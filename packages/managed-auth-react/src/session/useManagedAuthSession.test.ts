@@ -28,6 +28,7 @@ function awaitingInputState(): ManagedAuthResponse {
         ref: "email",
         type: "identifier",
         label: "Email",
+        reason: "missing",
       },
     ],
     choices: [],

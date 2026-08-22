@@ -28,6 +28,7 @@ describe("mergeStateEvent", () => {
           ref: "email",
           type: "identifier",
           label: "Email",
+          reason: "missing",
         },
       ],
       choices: [{ id: "google", type: "sso_provider", label: "Google" }],
@@ -195,18 +196,21 @@ describe("normalizeManagedAuthState", () => {
           ref: "username",
           type: "identifier",
           label: "Username",
+          reason: "missing",
         },
         {
           id: "field_email",
           ref: "email",
           type: "identifier",
           label: "Email",
+          reason: "missing",
         },
         {
           id: "field_phone",
           ref: "phone_number",
           type: "identifier",
           label: "Phone",
+          reason: "missing",
         },
       ],
       choices: [
@@ -257,5 +261,62 @@ describe("normalizeManagedAuthState", () => {
         },
       ],
     });
+  });
+});
+
+describe("field reason", () => {
+  test("carries the canonical field reason into the rendered field", () => {
+    const state = managedAuthState({
+      fields: [
+        {
+          id: "field_password",
+          ref: "password",
+          type: "password",
+          label: "Password",
+          reason: "rejected",
+        },
+      ],
+    });
+
+    const derived = normalizeManagedAuthState(state).discovered_fields;
+    expect(derived?.[0].reason).toBe("rejected");
+  });
+
+  test("projects the exact field shape the form renders", () => {
+    const state = managedAuthState({
+      fields: [
+        {
+          id: "field_password",
+          ref: "password",
+          type: "password",
+          label: "Password",
+          required: false,
+          reason: "missing",
+        },
+      ],
+      discovered_fields: [
+        {
+          name: "password",
+          type: "password",
+          label: "Password",
+          placeholder: "Enter password",
+          hint: "Use the password for this account",
+        },
+      ],
+    });
+
+    expect(normalizeManagedAuthState(state).discovered_fields).toStrictEqual([
+      {
+        id: "field_password",
+        ref: "password",
+        name: "field_password",
+        type: "password",
+        label: "Password",
+        placeholder: "Enter password",
+        required: false,
+        reason: "missing",
+        hint: "Use the password for this account",
+      },
+    ]);
   });
 });

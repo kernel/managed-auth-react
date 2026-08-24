@@ -60,7 +60,6 @@ const mockSignInOptions: SignInOption[] = [
 ];
 
 type Step =
-  | "initializing"
   | "prime"
   | "discovering"
   | "awaiting_input"
@@ -74,7 +73,6 @@ type Step =
   | "error";
 
 const allSteps: Step[] = [
-  "initializing",
   "prime",
   "discovering",
   "awaiting_input",
@@ -90,13 +88,6 @@ const allSteps: Step[] = [
 
 function renderStep(step: Step) {
   switch (step) {
-    case "initializing":
-      return (
-        <LoadingState
-          message="Preparing secure sign-in..."
-          variant="initializing"
-        />
-      );
     case "prime":
       return <StepPrime targetDomain={TARGET_DOMAIN} onContinue={() => {}} />;
     case "discovering":

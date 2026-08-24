@@ -16,9 +16,6 @@ export interface Localization {
   legalPrivacyPolicy?: string;
   legalTermsOfService?: string;
   legalConjunction?: string;
-  /** Session initialization. */
-  initializingMessage?: string;
-  initializingStep?: string;
   /** Discovery / loading. */
   discoveringMessage?: string;
   waitingForFormMessage?: string;

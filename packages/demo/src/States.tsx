@@ -71,7 +71,6 @@ const mockSignInOptions: SignInOption[] = [
 // Local superset of the package's UIState — adds explicit multi-section
 // screens so we can scrub through every meaningful permutation in one place.
 type StateName =
-  | "initializing"
   | "prime"
   | "discovering"
   | "awaiting_input"
@@ -86,7 +85,6 @@ type StateName =
   | "error";
 
 const allStates: StateName[] = [
-  "initializing",
   "prime",
   "discovering",
   "awaiting_input",
@@ -112,13 +110,6 @@ export function States() {
 
   const renderState = () => {
     switch (currentState) {
-      case "initializing":
-        return (
-          <LoadingState
-            message="Preparing secure sign-in..."
-            variant="initializing"
-          />
-        );
       case "prime":
         return (
           <StepPrime

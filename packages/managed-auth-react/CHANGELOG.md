@@ -1,5 +1,11 @@
 # @onkernel/managed-auth-react
 
+## 0.5.1
+
+### Patch Changes
+
+- [#25](https://github.com/kernel/managed-auth-react/pull/25) [`eca48fa`](https://github.com/kernel/managed-auth-react/commit/eca48faea5b59ae4a2e6fd6a4a1cfd378ed4b7ef) Thanks [@masnwilliams](https://github.com/masnwilliams)! - Disable the consent action while the handoff exchange and initial session state load, preventing early interactions from being dropped.
+
 ## 0.5.0
 
 ### Minor Changes

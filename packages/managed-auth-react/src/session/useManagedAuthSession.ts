@@ -64,6 +64,7 @@ export interface ManagedAuthSessionOptions extends ApiClientOptions {
 export interface ManagedAuthSessionValue {
   state: ManagedAuthResponse | null;
   uiState: UIState;
+  isInitializing: boolean;
   isSubmitting: boolean;
   isReconnecting: boolean;
   submitError: string | null;
@@ -86,7 +87,10 @@ export function useManagedAuthSession(
 
   const [jwt, setJwt] = useState<string | null>(null);
   const [state, setState] = useState<ManagedAuthResponse | null>(null);
-  const [uiState, setUIState] = useState<UIState>("prime");
+  const [uiState, setUIState] = useState<UIState>(
+    autoStart ? "discovering" : "prime",
+  );
+  const [isInitializing, setIsInitializing] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isReconnecting, setIsReconnecting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -308,7 +312,15 @@ export function useManagedAuthSession(
     terminalRef.current = false;
     reconnectAttemptsRef.current = 0;
     callbackFiredRef.current = { success: false, error: false };
+    stateRef.current = null;
+    setJwt(null);
+    setState(null);
+    setUIState(autoStart ? "discovering" : "prime");
+    setIsInitializing(true);
     setIsSubmitting(false);
+    setIsReconnecting(false);
+    setSubmitError(null);
+    setInitError(null);
 
     const ref = { key: exchangeKey, active: true };
     exchangeRef.current = ref;
@@ -328,6 +340,7 @@ export function useManagedAuthSession(
         if (exchangeRef.current !== ref || !ref.active) return;
         stateRef.current = initial;
         setState(initial);
+        setIsInitializing(false);
         const derived = deriveUIState(initial);
         if (isTerminal(derived)) {
           terminalRef.current = true;
@@ -356,6 +369,7 @@ export function useManagedAuthSession(
         if (exchangeRef.current !== ref || !ref.active) return;
         const message =
           err instanceof Error ? err.message : "Failed to start session";
+        setIsInitializing(false);
         setInitError(message);
         setUIState("error");
         terminalRef.current = true;
@@ -530,6 +544,7 @@ export function useManagedAuthSession(
   return {
     state,
     uiState,
+    isInitializing,
     isSubmitting,
     isReconnecting,
     submitError,

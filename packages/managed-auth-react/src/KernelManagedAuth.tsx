@@ -74,6 +74,7 @@ function KernelManagedAuthInner({
   const {
     state,
     uiState,
+    isInitializing,
     submitError,
     initError,
     isSubmitting,
@@ -91,7 +92,7 @@ function KernelManagedAuthInner({
       <StepPrime
         targetDomain={targetDomain}
         onContinue={startFlow}
-        isLoading={isSubmitting}
+        isLoading={isInitializing || isSubmitting}
         layout={appearance?.layout}
       />
     );

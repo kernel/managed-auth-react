@@ -10,6 +10,8 @@ export interface Localization {
   primeSubtitle?: (siteName: string) => string;
   primeContinueButton?: string;
   primeLoadingButton?: string;
+  primeLoadingTitle?: string;
+  primeLoadingSubtitle?: string;
   securityEncryption?: string;
   securityNoThirdParty?: string;
   legalPrefix?: string;

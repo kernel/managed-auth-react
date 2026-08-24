@@ -140,6 +140,71 @@ async function renderSession(
   };
 }
 
+describe("useManagedAuthSession initialization", () => {
+  test("reports initialization until the session is ready", async () => {
+    const exchange = deferred<Response>();
+    let value: ManagedAuthSessionValue | null = null;
+
+    const fetchImpl = (async (
+      input: RequestInfo | URL,
+      init?: RequestInit,
+    ): Promise<Response> => {
+      const url = String(input);
+      if (url.endsWith("/exchange")) return exchange.promise;
+      if (init?.method === "GET") return response(awaitingInputState());
+      throw new Error(`Unexpected request: ${init?.method} ${url}`);
+    }) as typeof fetch;
+
+    function Harness() {
+      value = useManagedAuthSession({
+        sessionId: "session-id",
+        handoffCode: "handoff-code",
+        fetch: fetchImpl,
+      });
+      return null;
+    }
+
+    act(() => {
+      renderer = create(createElement(Harness));
+    });
+
+    expect(value!.uiState).toBe("prime");
+    expect(value!.isInitializing).toBe(true);
+
+    await act(async () => {
+      exchange.resolve(response({ jwt: "jwt" }));
+      await flushPromises();
+    });
+
+    expect(value!.uiState).toBe("prime");
+    expect(value!.isInitializing).toBe(false);
+  });
+
+  test("leaves initialization when the handoff exchange fails", async () => {
+    let value: ManagedAuthSessionValue | null = null;
+    const fetchImpl = (async (_input: RequestInfo | URL, _init?: RequestInit) =>
+      response({ message: "Invalid handoff" }, 401)) as typeof fetch;
+
+    function Harness() {
+      value = useManagedAuthSession({
+        sessionId: "session-id",
+        handoffCode: "handoff-code",
+        fetch: fetchImpl,
+      });
+      return null;
+    }
+
+    await act(async () => {
+      renderer = create(createElement(Harness));
+      await flushPromises();
+    });
+
+    expect(value!.uiState).toBe("error");
+    expect(value!.isInitializing).toBe(false);
+    expect(value!.initError).toBe("Invalid handoff");
+  });
+});
+
 describe("useManagedAuthSession stale interaction recovery", () => {
   test("does not reconnect after the session is unmounted", async () => {
     const refresh = deferred<Response>();

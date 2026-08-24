@@ -1,5 +1,13 @@
 # @onkernel/managed-auth-react
 
+## 0.5.0
+
+### Minor Changes
+
+- [#20](https://github.com/kernel/managed-auth-react/pull/20) [`a390c80`](https://github.com/kernel/managed-auth-react/commit/a390c80a7dc2380c2a08d7b67d44decf386b9e5a) Thanks [@masnwilliams](https://github.com/masnwilliams)! - Prefer canonical managed-auth fields and choices when present, bind submissions to their interaction IDs, refresh stale interactions, and retain legacy rendering and submission fallbacks during the deprecation window.
+
+- [#21](https://github.com/kernel/managed-auth-react/pull/21) [`4ec2a4d`](https://github.com/kernel/managed-auth-react/commit/4ec2a4d119f157234d053b51417060e42f8f5ed7) Thanks [@masnwilliams](https://github.com/masnwilliams)! - Show a notice when a canonical field has `reason: "rejected"`. Adds the `fieldRejectedNotice` label and the `inputRejectedNotice` appearance slot.
+
 ## 0.4.1
 
 ### Patch Changes

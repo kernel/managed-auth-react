@@ -74,6 +74,7 @@ function KernelManagedAuthInner({
   const {
     state,
     uiState,
+    isInitializing,
     submitError,
     initError,
     isSubmitting,
@@ -85,6 +86,12 @@ function KernelManagedAuthInner({
   } = session;
 
   const targetDomain = useMemo(() => state?.domain ?? "", [state?.domain]);
+
+  if (isInitializing) {
+    return (
+      <LoadingState message={l.initializingMessage} variant="initializing" />
+    );
+  }
 
   if (uiState === "prime") {
     return (

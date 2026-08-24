@@ -13,9 +13,11 @@ import {
 
 interface LoadingStateProps {
   message: string;
-  variant?: "discovering" | "authenticating";
+  variant?: "initializing" | "discovering" | "authenticating";
 }
 
+const INITIALIZING_ICONS: Array<(props: { className?: string }) => ReactNode> =
+  [LockIcon];
 const DISCOVERY_ICONS: Array<(props: { className?: string }) => ReactNode> = [
   GlobeIcon,
   SearchIcon,
@@ -36,13 +38,23 @@ export function LoadingState({
   const l = useLocalization();
   const [currentStep, setCurrentStep] = useState(0);
 
-  const steps =
-    variant === "discovering" ? l.loadingDiscoverySteps : l.loadingAuthSteps;
-  const icons = variant === "discovering" ? DISCOVERY_ICONS : AUTH_ICONS;
+  let steps: string[];
+  let icons: Array<(props: { className?: string }) => ReactNode>;
+  if (variant === "initializing") {
+    steps = [l.initializingStep];
+    icons = INITIALIZING_ICONS;
+  } else if (variant === "discovering") {
+    steps = l.loadingDiscoverySteps;
+    icons = DISCOVERY_ICONS;
+  } else {
+    steps = l.loadingAuthSteps;
+    icons = AUTH_ICONS;
+  }
   const stepCount = Math.min(steps.length, icons.length);
 
   useEffect(() => {
     setCurrentStep(0);
+    if (stepCount <= 1) return;
     const id = setInterval(() => {
       setCurrentStep((prev) => (prev < stepCount - 1 ? prev + 1 : prev));
     }, STEP_INTERVAL_MS);
@@ -69,19 +81,23 @@ export function LoadingState({
         <p className="kma-loading-step">{steps[currentStep]}</p>
       </div>
 
-      <div className="kma-loading-dots" aria-hidden="true">
-        {Array.from({ length: stepCount }).map((_, i) => (
-          <span
-            key={i}
-            className={
-              "kma-loading-dot" +
-              (i === currentStep ? " kma-loading-dot--active" : "")
-            }
-          />
-        ))}
-      </div>
+      {stepCount > 1 && (
+        <div className="kma-loading-dots" aria-hidden="true">
+          {Array.from({ length: stepCount }).map((_, i) => (
+            <span
+              key={i}
+              className={
+                "kma-loading-dot" +
+                (i === currentStep ? " kma-loading-dot--active" : "")
+              }
+            />
+          ))}
+        </div>
+      )}
 
-      <p className="kma-loading-hint">{l.loadingTimeHint}</p>
+      {variant !== "initializing" && (
+        <p className="kma-loading-hint">{l.loadingTimeHint}</p>
+      )}
     </div>
   );
 }

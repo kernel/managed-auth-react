@@ -13,6 +13,8 @@ export const DEFAULT_LOCALIZATION: Localizer = {
   legalPrivacyPolicy: "Privacy Policy",
   legalTermsOfService: "Terms of Service",
   legalConjunction: "and",
+  initializingMessage: "Preparing secure sign-in...",
+  initializingStep: "Establishing a secure connection...",
   discoveringMessage: "Discovering login requirements...",
   waitingForFormMessage: "Waiting for login form...",
   submittingMessage: "Signing in...",

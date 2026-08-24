@@ -30,6 +30,13 @@ export function StepPrime({
   const displayName =
     primaryLabel.charAt(0).toUpperCase() + primaryLabel.slice(1);
 
+  const isInitializing = isLoading && !targetDomain;
+  const title = isInitializing
+    ? l.primeLoadingTitle
+    : l.primeTitle(displayName);
+  const subtitle = isInitializing
+    ? l.primeLoadingSubtitle
+    : l.primeSubtitle(siteName);
   const showSecurityCard = layout?.showSecurityCard !== false;
   const showLegalText = layout?.showLegalText !== false;
 
@@ -40,8 +47,8 @@ export function StepPrime({
       </div>
 
       <div className="kma-step__header">
-        <h1 {...slot("title", "kma-title")}>{l.primeTitle(displayName)}</h1>
-        <p {...slot("subtitle", "kma-subtitle")}>{l.primeSubtitle(siteName)}</p>
+        <h1 {...slot("title", "kma-title")}>{title}</h1>
+        <p {...slot("subtitle", "kma-subtitle")}>{subtitle}</p>
       </div>
 
       {showSecurityCard && (

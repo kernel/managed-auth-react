@@ -5,6 +5,8 @@ export const DEFAULT_LOCALIZATION: Localizer = {
   primeSubtitle: (site) => `Enter your ${site} credentials to continue`,
   primeContinueButton: "Continue",
   primeLoadingButton: "Loading...",
+  primeLoadingTitle: "Preparing secure sign-in",
+  primeLoadingSubtitle: "Loading connection details...",
   securityEncryption: "Your credentials are encrypted end-to-end",
   // Matches the second sentence of `credentialSafetyNotice` so the consent
   // step and the form footer make the same promise verbatim.

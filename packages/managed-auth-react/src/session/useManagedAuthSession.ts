@@ -87,7 +87,9 @@ export function useManagedAuthSession(
 
   const [jwt, setJwt] = useState<string | null>(null);
   const [state, setState] = useState<ManagedAuthResponse | null>(null);
-  const [uiState, setUIState] = useState<UIState>("prime");
+  const [uiState, setUIState] = useState<UIState>(
+    autoStart ? "discovering" : "prime",
+  );
   const [isInitializing, setIsInitializing] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isReconnecting, setIsReconnecting] = useState(false);
@@ -313,7 +315,7 @@ export function useManagedAuthSession(
     stateRef.current = null;
     setJwt(null);
     setState(null);
-    setUIState("prime");
+    setUIState(autoStart ? "discovering" : "prime");
     setIsInitializing(true);
     setIsSubmitting(false);
     setIsReconnecting(false);

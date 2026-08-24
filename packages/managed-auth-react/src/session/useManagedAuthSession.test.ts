@@ -168,8 +168,7 @@ describe("useManagedAuthSession initialization", () => {
       renderer = create(createElement(Harness));
     });
 
-    expect(value!.uiState).toBe("prime");
-    expect(value!.isInitializing).toBe(true);
+    expect(value!.uiState).toBe("initializing");
 
     await act(async () => {
       exchange.resolve(response({ jwt: "jwt" }));
@@ -177,7 +176,6 @@ describe("useManagedAuthSession initialization", () => {
     });
 
     expect(value!.uiState).toBe("prime");
-    expect(value!.isInitializing).toBe(false);
   });
 
   test("leaves initialization when the handoff exchange fails", async () => {
@@ -199,7 +197,6 @@ describe("useManagedAuthSession initialization", () => {
       await flushPromises();
     });
 
-    expect(value!.isInitializing).toBe(false);
     expect(value!.uiState).toBe("error");
     expect(value!.initError).toBe("Invalid handoff");
   });

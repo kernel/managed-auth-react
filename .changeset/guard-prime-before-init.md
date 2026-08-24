@@ -2,4 +2,4 @@
 "@onkernel/managed-auth-react": patch
 ---
 
-Show a distinct initialization state until the handoff exchange and initial session state have loaded, preventing early consent interactions from being dropped.
+Add an initialization UI state while the handoff exchange and initial session state load, preventing early consent interactions from being dropped.

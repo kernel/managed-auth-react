@@ -147,6 +147,7 @@ export interface ManagedAuthResponse {
 }
 
 export type UIState =
+  | "initializing"
   | "prime"
   | "discovering"
   | "awaiting_input"

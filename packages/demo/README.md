@@ -2,7 +2,7 @@
 
 Local-only Vite app for previewing [`@onkernel/managed-auth-react`](../managed-auth-react). Two tabs:
 
-- **States** — every UI state in the package (prime, discovering, awaiting input + SSO + MFA + sign-in options, external action, success, expired, error) rendered against the default theme. Use the top-right state picker to scrub.
+- **States** — every UI state in the package (initializing, prime, discovering, awaiting input + SSO + MFA + sign-in options, external action, success, expired, error) rendered against the default theme. Use the top-right state picker to scrub.
 - **Appearances** — eight worked customization variants (default + 7 brand-inspired: Linear, Vercel, Stripe, Notion, Anthropic, Supabase, Kernel brand). Each variant renders the same step in lockstep so you can audit how every brand handles every screen.
 
 The auth flow is rendered headless (no real Kernel API calls); we mount the package's step components directly so you can iterate on styling without needing a live session.

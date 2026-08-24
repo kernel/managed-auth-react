@@ -74,7 +74,6 @@ function KernelManagedAuthInner({
   const {
     state,
     uiState,
-    isInitializing,
     submitError,
     initError,
     isSubmitting,
@@ -87,7 +86,7 @@ function KernelManagedAuthInner({
 
   const targetDomain = useMemo(() => state?.domain ?? "", [state?.domain]);
 
-  if (isInitializing) {
+  if (uiState === "initializing") {
     return (
       <LoadingState message={l.initializingMessage} variant="initializing" />
     );

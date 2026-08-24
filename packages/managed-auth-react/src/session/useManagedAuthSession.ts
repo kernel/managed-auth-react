@@ -64,7 +64,6 @@ export interface ManagedAuthSessionOptions extends ApiClientOptions {
 export interface ManagedAuthSessionValue {
   state: ManagedAuthResponse | null;
   uiState: UIState;
-  isInitializing: boolean;
   isSubmitting: boolean;
   isReconnecting: boolean;
   submitError: string | null;
@@ -87,8 +86,7 @@ export function useManagedAuthSession(
 
   const [jwt, setJwt] = useState<string | null>(null);
   const [state, setState] = useState<ManagedAuthResponse | null>(null);
-  const [uiState, setUIState] = useState<UIState>("prime");
-  const [isInitializing, setIsInitializing] = useState(true);
+  const [uiState, setUIState] = useState<UIState>("initializing");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isReconnecting, setIsReconnecting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -313,8 +311,7 @@ export function useManagedAuthSession(
     stateRef.current = null;
     setJwt(null);
     setState(null);
-    setUIState("prime");
-    setIsInitializing(true);
+    setUIState("initializing");
     setIsSubmitting(false);
     setIsReconnecting(false);
     setSubmitError(null);
@@ -338,7 +335,6 @@ export function useManagedAuthSession(
         if (exchangeRef.current !== ref || !ref.active) return;
         stateRef.current = initial;
         setState(initial);
-        setIsInitializing(false);
         const derived = deriveUIState(initial);
         if (isTerminal(derived)) {
           terminalRef.current = true;
@@ -367,7 +363,6 @@ export function useManagedAuthSession(
         if (exchangeRef.current !== ref || !ref.active) return;
         const message =
           err instanceof Error ? err.message : "Failed to start session";
-        setIsInitializing(false);
         setInitError(message);
         setUIState("error");
         terminalRef.current = true;
@@ -542,7 +537,6 @@ export function useManagedAuthSession(
   return {
     state,
     uiState,
-    isInitializing,
     isSubmitting,
     isReconnecting,
     submitError,

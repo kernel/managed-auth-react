@@ -140,6 +140,45 @@ async function renderSession(
   };
 }
 
+describe("useManagedAuthSession initialization", () => {
+  test("does not show the consent step before the session is ready", async () => {
+    const exchange = deferred<Response>();
+    let value: ManagedAuthSessionValue | null = null;
+
+    const fetchImpl = (async (
+      input: RequestInfo | URL,
+      init?: RequestInit,
+    ): Promise<Response> => {
+      const url = String(input);
+      if (url.endsWith("/exchange")) return exchange.promise;
+      if (init?.method === "GET") return response(awaitingInputState());
+      throw new Error(`Unexpected request: ${init?.method} ${url}`);
+    }) as typeof fetch;
+
+    function Harness() {
+      value = useManagedAuthSession({
+        sessionId: "session-id",
+        handoffCode: "handoff-code",
+        fetch: fetchImpl,
+      });
+      return null;
+    }
+
+    act(() => {
+      renderer = create(createElement(Harness));
+    });
+
+    expect(value!.uiState).toBe("discovering");
+
+    await act(async () => {
+      exchange.resolve(response({ jwt: "jwt" }));
+      await flushPromises();
+    });
+
+    expect(value!.uiState).toBe("prime");
+  });
+});
+
 describe("useManagedAuthSession stale interaction recovery", () => {
   test("does not reconnect after the session is unmounted", async () => {
     const refresh = deferred<Response>();

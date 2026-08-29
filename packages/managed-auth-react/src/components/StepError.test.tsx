@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { errorDisplayForCode } from "./StepError";
 
 describe("errorDisplayForCode", () => {
-  test("renders typed reauth blockers", () => {
+  test("renders typed challenge outcomes with context-neutral copy", () => {
     const cases = [
       ["totp_required", "Authenticator code required"],
       ["sms_code_required", "SMS code required"],
@@ -13,7 +13,9 @@ describe("errorDisplayForCode", () => {
     ];
 
     for (const [code, title] of cases) {
-      expect(errorDisplayForCode(code)?.title).toBe(title);
+      const display = errorDisplayForCode(code);
+      expect(display?.title).toBe(title);
+      expect(display?.description.toLowerCase()).not.toContain("reauth");
     }
   });
 

@@ -29,17 +29,15 @@ const ERROR_DISPLAY: Record<string, { title: string; description: string }> = {
   totp_required: {
     title: "Authenticator code required",
     description:
-      "An authenticator code is required, but no TOTP secret is available for automatic re-authentication.",
+      "An authenticator code is required, but no saved TOTP secret is available.",
   },
   sms_code_required: {
     title: "SMS code required",
-    description:
-      "A code sent by SMS is required. Complete an interactive login to continue.",
+    description: "A code sent by SMS is required.",
   },
   email_code_required: {
     title: "Email code required",
-    description:
-      "A code sent by email is required. Complete an interactive login to continue.",
+    description: "A code sent by email is required.",
   },
   account_choice_required: {
     title: "Account selection required",

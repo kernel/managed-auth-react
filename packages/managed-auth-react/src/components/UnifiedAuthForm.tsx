@@ -265,6 +265,7 @@ export function UnifiedAuthForm({
                 id={field.name}
                 name={field.name}
                 type={showPassword[field.name] ? "text" : "password"}
+                inputMode={field.input_mode}
                 placeholder={field.placeholder}
                 required={field.required}
                 autoComplete={getAutocomplete(field)}
@@ -300,6 +301,7 @@ export function UnifiedAuthForm({
               id={field.name}
               name={field.name}
               type={getInputType(field)}
+              inputMode={field.input_mode}
               placeholder={field.placeholder}
               required={field.required}
               autoComplete={getAutocomplete(field)}

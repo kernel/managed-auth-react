@@ -65,6 +65,7 @@ function fieldsFromCanonical(
       ref: field.ref,
       name: field.id,
       type: fieldTypeToDiscoveredType(field),
+      ...(field.input_mode ? { input_mode: field.input_mode } : {}),
       label: field.label || field.ref,
       placeholder: legacyField?.placeholder,
       required: field.required ?? true,

@@ -28,8 +28,7 @@ const ERROR_DISPLAY: Record<string, { title: string; description: string }> = {
   },
   totp_required: {
     title: "Authenticator code required",
-    description:
-      "An authenticator code is required, but no saved TOTP secret is available.",
+    description: "An authenticator code is required.",
   },
   sms_code_required: {
     title: "SMS code required",

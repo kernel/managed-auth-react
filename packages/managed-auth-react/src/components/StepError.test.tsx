@@ -19,6 +19,12 @@ describe("errorDisplayForCode", () => {
     }
   });
 
+  test("does not infer TOTP secret availability", () => {
+    expect(errorDisplayForCode("totp_required")?.description).toBe(
+      "An authenticator code is required.",
+    );
+  });
+
   test("distinguishes a rejected authenticator code from invalid credentials", () => {
     const display = errorDisplayForCode("totp_code_rejected");
 

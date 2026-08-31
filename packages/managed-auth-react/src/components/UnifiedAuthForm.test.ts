@@ -37,6 +37,17 @@ describe("getAutocomplete", () => {
     ).toBe("tel");
   });
 
+  test("keeps one-time-code autocomplete ahead of keyboard hints", () => {
+    expect(
+      getAutocomplete({
+        name: "field_code",
+        label: "Verification code",
+        type: "code",
+        input_mode: "tel",
+      }),
+    ).toBe("one-time-code");
+  });
+
   test("does not infer email autofill for mixed identifier inputs", () => {
     expect(
       getAutocomplete({

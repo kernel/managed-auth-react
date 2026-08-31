@@ -78,8 +78,6 @@ function getInputType(field: DiscoveredField): string {
 
 export function getAutocomplete(field: DiscoveredField): string | undefined {
   const identity = (field.ref ?? field.name).toLowerCase();
-  if (field.input_mode === "email") return "email";
-  if (field.input_mode === "tel") return "tel";
   switch (field.type) {
     case "email":
       return "email";
@@ -90,11 +88,12 @@ export function getAutocomplete(field: DiscoveredField): string | undefined {
     case "code":
     case "totp":
       return "one-time-code";
-    default:
-      if (identity.includes("user") || identity.includes("identifier"))
-        return "username";
-      return undefined;
   }
+  if (field.input_mode === "email") return "email";
+  if (field.input_mode === "tel") return "tel";
+  if (identity.includes("user") || identity.includes("identifier"))
+    return "username";
+  return undefined;
 }
 
 function getDescriptionIds(field: DiscoveredField): string | undefined {

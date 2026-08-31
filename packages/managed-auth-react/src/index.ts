@@ -37,6 +37,7 @@ export type {
   AuthSuccessPayload,
   AuthErrorPayload,
   MFAType,
+  InputMode,
   DiscoveredField,
   SSOButton,
   MFAOption,

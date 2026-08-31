@@ -17,6 +17,37 @@ describe("getAutocomplete", () => {
       }),
     ).toBe("username");
   });
+
+  test("uses input modes for dedicated email and telephone autofill", () => {
+    expect(
+      getAutocomplete({
+        name: "field_email",
+        label: "Email address",
+        type: "text",
+        input_mode: "email",
+      }),
+    ).toBe("email");
+    expect(
+      getAutocomplete({
+        name: "field_phone",
+        label: "Phone number",
+        type: "text",
+        input_mode: "tel",
+      }),
+    ).toBe("tel");
+  });
+
+  test("does not infer email autofill for mixed identifier inputs", () => {
+    expect(
+      getAutocomplete({
+        ref: "email",
+        name: "field_identifier",
+        label: "Mobile number, username, or email",
+        type: "text",
+        input_mode: "text",
+      }),
+    ).toBeUndefined();
+  });
 });
 
 describe("UnifiedAuthForm", () => {
@@ -50,6 +81,7 @@ describe("UnifiedAuthForm", () => {
     const input = renderer.root.findByType("input");
     expect(input.props.type).toBe("text");
     expect(input.props.inputMode).toBe("email");
+    expect(input.props.autoComplete).toBe("email");
 
     act(() => renderer.unmount());
   });

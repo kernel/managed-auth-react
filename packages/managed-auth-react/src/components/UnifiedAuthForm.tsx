@@ -78,6 +78,8 @@ function getInputType(field: DiscoveredField): string {
 
 export function getAutocomplete(field: DiscoveredField): string | undefined {
   const identity = (field.ref ?? field.name).toLowerCase();
+  if (field.input_mode === "email") return "email";
+  if (field.input_mode === "tel") return "tel";
   switch (field.type) {
     case "email":
       return "email";

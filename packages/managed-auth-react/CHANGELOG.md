@@ -1,5 +1,11 @@
 # @onkernel/managed-auth-react
 
+## 0.5.2
+
+### Patch Changes
+
+- [#27](https://github.com/kernel/managed-auth-react/pull/27) [`63cac3e`](https://github.com/kernel/managed-auth-react/commit/63cac3efcba043f8762be5b0f54e3dc1680d2cb3) Thanks [@masnwilliams](https://github.com/masnwilliams)! - Render typed reauthentication blockers and rejected authenticator codes with specific recovery guidance.
+
 ## 0.5.1
 
 ### Patch Changes

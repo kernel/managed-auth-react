@@ -26,6 +26,38 @@ const ERROR_DISPLAY: Record<string, { title: string; description: string }> = {
     title: "Invalid credentials",
     description: "The username or password was not accepted by the website.",
   },
+  totp_required: {
+    title: "Authenticator code required",
+    description: "An authenticator code is required.",
+  },
+  sms_code_required: {
+    title: "SMS code required",
+    description: "A code sent by SMS is required.",
+  },
+  email_code_required: {
+    title: "Email code required",
+    description: "A code sent by email is required.",
+  },
+  account_choice_required: {
+    title: "Account selection required",
+    description:
+      "An account or identity must be selected before login can continue.",
+  },
+  customer_input_required: {
+    title: "Additional input required",
+    description:
+      "Additional information is required before login can continue.",
+  },
+  external_action_required: {
+    title: "External action required",
+    description:
+      "An external action is required to continue. Check your authenticator app, email, or phone for a verification request.",
+  },
+  totp_code_rejected: {
+    title: "Authenticator code rejected",
+    description:
+      "The website rejected the authenticator code. Try a fresh code, or reconnect the account if generated codes keep failing across new code windows.",
+  },
   bot_detected: {
     title: "Verification required",
     description:
@@ -66,6 +98,10 @@ const ERROR_DISPLAY: Record<string, { title: string; description: string }> = {
   },
 };
 
+export function errorDisplayForCode(errorCode?: string) {
+  return errorCode ? ERROR_DISPLAY[errorCode] : undefined;
+}
+
 function extractErrorText(raw: string): string {
   try {
     const parsed = JSON.parse(raw);
@@ -92,7 +128,7 @@ export function StepError({
   const siteName = extractDomainName(targetDomain);
   const [showDetails, setShowDetails] = useState(false);
 
-  const display = errorCode ? ERROR_DISPLAY[errorCode] : undefined;
+  const display = errorDisplayForCode(errorCode);
   const title = display?.title ?? l.errorTitle;
   const description = display?.description ?? l.errorGenericMessage;
 

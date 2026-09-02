@@ -25,11 +25,19 @@ describe("errorDisplayForCode", () => {
     );
   });
 
+  test("uses customer-facing copy for additional input", () => {
+    expect(errorDisplayForCode("customer_input_required")?.description).toBe(
+      "Additional information is required before login can continue.",
+    );
+  });
+
   test("distinguishes a rejected authenticator code from invalid credentials", () => {
     const display = errorDisplayForCode("totp_code_rejected");
+    const invalidCredentials = errorDisplayForCode("credentials_invalid");
 
     expect(display?.title).toBe("Authenticator code rejected");
     expect(display?.description).toContain("Try a fresh code");
-    expect(display).not.toEqual(errorDisplayForCode("credentials_invalid"));
+    expect(invalidCredentials).toBeTruthy();
+    expect(display).not.toEqual(invalidCredentials);
   });
 });

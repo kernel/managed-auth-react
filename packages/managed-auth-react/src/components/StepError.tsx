@@ -46,7 +46,7 @@ const ERROR_DISPLAY: Record<string, { title: string; description: string }> = {
   customer_input_required: {
     title: "Additional input required",
     description:
-      "Additional customer input is required before login can continue.",
+      "Additional information is required before login can continue.",
   },
   external_action_required: {
     title: "External action required",

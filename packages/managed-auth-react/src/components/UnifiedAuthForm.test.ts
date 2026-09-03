@@ -35,6 +35,15 @@ describe("getAutocomplete", () => {
         input_mode: "tel",
       }),
     ).toBe("tel");
+    expect(
+      getAutocomplete({
+        ref: "username",
+        name: "field_identifier",
+        label: "Account identifier",
+        type: "text",
+        input_mode: "email",
+      }),
+    ).toBe("email");
   });
 
   test("keeps one-time-code autocomplete ahead of keyboard hints", () => {

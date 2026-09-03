@@ -88,11 +88,12 @@ export function getAutocomplete(field: DiscoveredField): string | undefined {
     case "code":
     case "totp":
       return "one-time-code";
-    default:
-      if (identity.includes("user") || identity.includes("identifier"))
-        return "username";
-      return undefined;
   }
+  if (field.input_mode === "email") return "email";
+  if (field.input_mode === "tel") return "tel";
+  if (identity.includes("user") || identity.includes("identifier"))
+    return "username";
+  return undefined;
 }
 
 function getDescriptionIds(field: DiscoveredField): string | undefined {
@@ -265,6 +266,7 @@ export function UnifiedAuthForm({
                 id={field.name}
                 name={field.name}
                 type={showPassword[field.name] ? "text" : "password"}
+                inputMode={field.input_mode}
                 placeholder={field.placeholder}
                 required={field.required}
                 autoComplete={getAutocomplete(field)}
@@ -300,6 +302,7 @@ export function UnifiedAuthForm({
               id={field.name}
               name={field.name}
               type={getInputType(field)}
+              inputMode={field.input_mode}
               placeholder={field.placeholder}
               required={field.required}
               autoComplete={getAutocomplete(field)}

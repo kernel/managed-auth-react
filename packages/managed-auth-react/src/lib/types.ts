@@ -27,12 +27,15 @@ export type MFAType =
   | "switch"
   | "other";
 
+export type InputMode = "text" | "email" | "tel" | "numeric";
+
 export interface DiscoveredField {
   id?: string;
   ref?: string;
   name: string;
   label: string;
   type: "text" | "email" | "password" | "tel" | "code" | "totp";
+  input_mode?: InputMode;
   placeholder?: string;
   required?: boolean;
   reason?: "missing" | "rejected";
@@ -72,6 +75,7 @@ export interface ManagedAuthField {
     | "totp_code"
     | "totp_secret"
     | "text";
+  input_mode?: InputMode;
   label?: string;
   required?: boolean;
   reason: "missing" | "rejected";

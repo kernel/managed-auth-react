@@ -288,6 +288,7 @@ export function useManagedAuthSession(
 
       const resyncAndConnect = async (t: string) => {
         const gen = generationRef.current;
+        const stateRevision = stateRevisionRef.current;
         if (terminalRef.current) return;
         try {
           const fresh = normalizeManagedAuthState(
@@ -295,13 +296,18 @@ export function useManagedAuthSession(
           );
           if (gen !== generationRef.current) return;
           if (terminalRef.current) return;
-          const derived = applyState(fresh);
-          if (isTerminal(derived)) {
-            return;
+          if (stateRevision === stateRevisionRef.current) {
+            const derived = applyState(fresh);
+            if (isTerminal(derived)) return;
           }
           connectStream(t);
         } catch (err) {
           if (gen !== generationRef.current) return;
+          if (terminalRef.current) return;
+          if (stateRevision !== stateRevisionRef.current) {
+            connectStream(t);
+            return;
+          }
           const status =
             err instanceof ManagedAuthApiError ? err.status : undefined;
           if (status === 401 || status === 410) {
@@ -451,6 +457,7 @@ export function useManagedAuthSession(
         exchangeRef.current?.active === true;
 
       setIsSubmitting(true);
+      stateRevisionRef.current++;
       setSubmitError(null);
       setUIState("submitting");
       try {

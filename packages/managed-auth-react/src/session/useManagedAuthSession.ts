@@ -26,6 +26,7 @@ import {
 
 const RECONNECT_BASE_MS = 1000;
 const RECONNECT_MAX_MS = 15000;
+const DISCOVERY_REFRESH_MS = 15000;
 
 function deriveUIState(state: ManagedAuthResponse): UIState {
   if (state.flow_status === "FAILED" || state.flow_status === "CANCELED") {
@@ -99,9 +100,13 @@ export function useManagedAuthSession(
   const stateRef = useRef<ManagedAuthResponse | null>(null);
   const disconnectRef = useRef<(() => void) | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const discoveryRefreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const reconnectAttemptsRef = useRef(0);
   const terminalRef = useRef(false);
   const generationRef = useRef(0);
+  const stateRevisionRef = useRef(0);
   const callbackFiredRef = useRef<{ success: boolean; error: boolean }>({
     success: false,
     error: false,
@@ -135,50 +140,136 @@ export function useManagedAuthSession(
       clearTimeout(reconnectTimerRef.current);
       reconnectTimerRef.current = null;
     }
+    if (discoveryRefreshTimerRef.current) {
+      clearTimeout(discoveryRefreshTimerRef.current);
+      discoveryRefreshTimerRef.current = null;
+    }
     if (disconnectRef.current) {
       disconnectRef.current();
       disconnectRef.current = null;
     }
   }, []);
 
+  const applyState = useCallback(
+    (next: ManagedAuthResponse): UIState => {
+      stateRevisionRef.current++;
+      stateRef.current = next;
+      setState(next);
+      const nextUI = deriveUIState(next);
+      setUIState(nextUI);
+
+      if (nextUI === "success") {
+        terminalRef.current = true;
+        setIsReconnecting(false);
+        fireSuccessOnce({
+          profileName: next.profile_name,
+          domain: next.domain,
+        });
+        disconnectStream();
+      } else if (nextUI === "error" || nextUI === "expired") {
+        terminalRef.current = true;
+        setIsReconnecting(false);
+        fireErrorOnce({
+          code: next.error_code ?? undefined,
+          message:
+            next.error_message ||
+            next.website_error ||
+            (nextUI === "expired" ? "Session expired" : "Login failed"),
+        });
+        disconnectStream();
+      }
+
+      return nextUI;
+    },
+    [disconnectStream, fireErrorOnce, fireSuccessOnce],
+  );
+
   const connectStream = useCallback(
     (token: string) => {
       disconnectStream();
       if (terminalRef.current) return;
 
+      const clearDiscoveryRefresh = () => {
+        if (discoveryRefreshTimerRef.current) {
+          clearTimeout(discoveryRefreshTimerRef.current);
+          discoveryRefreshTimerRef.current = null;
+        }
+      };
+
+      const scheduleDiscoveryRefresh = (t: string): void => {
+        clearDiscoveryRefresh();
+        const current = stateRef.current;
+        if (!current || deriveUIState(current) !== "discovering") return;
+
+        const generation = generationRef.current;
+        const stateRevision = stateRevisionRef.current;
+        discoveryRefreshTimerRef.current = setTimeout(() => {
+          discoveryRefreshTimerRef.current = null;
+          void (async () => {
+            if (
+              terminalRef.current ||
+              generation !== generationRef.current ||
+              stateRevision !== stateRevisionRef.current
+            ) {
+              return;
+            }
+
+            try {
+              const fresh = normalizeManagedAuthState(
+                await retrieveManagedAuth(sessionId, t, options),
+              );
+              if (
+                terminalRef.current ||
+                generation !== generationRef.current ||
+                stateRevision !== stateRevisionRef.current
+              ) {
+                return;
+              }
+
+              const nextUI = applyState(fresh);
+              if (nextUI === "discovering") {
+                scheduleDiscoveryRefresh(t);
+              }
+            } catch (err) {
+              if (
+                terminalRef.current ||
+                generation !== generationRef.current ||
+                stateRevision !== stateRevisionRef.current
+              ) {
+                return;
+              }
+              const status =
+                err instanceof ManagedAuthApiError ? err.status : undefined;
+              if (status === 401 || status === 410) {
+                terminalRef.current = true;
+                setUIState("expired");
+                fireErrorOnce({ message: "Session expired" });
+                disconnectStream();
+              } else {
+                scheduleDiscoveryRefresh(t);
+              }
+            }
+          })();
+        }, DISCOVERY_REFRESH_MS);
+      };
+
       const handleStateEvent = (ev: ManagedAuthStateEventData) => {
+        clearDiscoveryRefresh();
         reconnectAttemptsRef.current = 0;
         setIsReconnecting(false);
         setSubmitError(null);
         const base = stateRef.current;
         if (!base) return;
         const merged = normalizeManagedAuthState(mergeStateEvent(base, ev));
-        stateRef.current = merged;
-        setState(merged);
-        const nextUI = deriveUIState(merged);
-        setUIState(nextUI);
-        if (nextUI === "success") {
-          terminalRef.current = true;
-          fireSuccessOnce({
-            profileName: merged.profile_name,
-            domain: merged.domain,
-          });
-          disconnectStream();
-        } else if (nextUI === "error" || nextUI === "expired") {
-          terminalRef.current = true;
-          fireErrorOnce({
-            code: merged.error_code ?? undefined,
-            message:
-              merged.error_message ||
-              merged.website_error ||
-              (nextUI === "expired" ? "Session expired" : "Login failed"),
-          });
-          disconnectStream();
+        const nextUI = applyState(merged);
+        if (nextUI === "discovering") {
+          scheduleDiscoveryRefresh(token);
         }
       };
 
       const scheduleReconnect = () => {
         if (terminalRef.current) return;
+        clearDiscoveryRefresh();
         if (reconnectTimerRef.current) {
           clearTimeout(reconnectTimerRef.current);
           reconnectTimerRef.current = null;
@@ -204,27 +295,8 @@ export function useManagedAuthSession(
           );
           if (gen !== generationRef.current) return;
           if (terminalRef.current) return;
-          stateRef.current = fresh;
-          setState(fresh);
-          const derived = deriveUIState(fresh);
-          setUIState(derived);
+          const derived = applyState(fresh);
           if (isTerminal(derived)) {
-            terminalRef.current = true;
-            setIsReconnecting(false);
-            if (derived === "success") {
-              fireSuccessOnce({
-                profileName: fresh.profile_name,
-                domain: fresh.domain,
-              });
-            } else {
-              fireErrorOnce({
-                code: fresh.error_code ?? undefined,
-                message:
-                  fresh.error_message ||
-                  fresh.website_error ||
-                  (derived === "expired" ? "Session expired" : "Login failed"),
-              });
-            }
             return;
           }
           connectStream(t);
@@ -274,8 +346,9 @@ export function useManagedAuthSession(
         },
         options,
       );
+      scheduleDiscoveryRefresh(token);
     },
-    [disconnectStream, fireErrorOnce, fireSuccessOnce, options, sessionId],
+    [applyState, disconnectStream, fireErrorOnce, options, sessionId],
   );
 
   useEffect(() => {
@@ -311,6 +384,7 @@ export function useManagedAuthSession(
 
     terminalRef.current = false;
     reconnectAttemptsRef.current = 0;
+    stateRevisionRef.current++;
     callbackFiredRef.current = { success: false, error: false };
     stateRef.current = null;
     setJwt(null);
@@ -338,32 +412,14 @@ export function useManagedAuthSession(
           await retrieveManagedAuth(sessionId, token, options),
         );
         if (exchangeRef.current !== ref || !ref.active) return;
-        stateRef.current = initial;
-        setState(initial);
         setIsInitializing(false);
-        const derived = deriveUIState(initial);
-        if (isTerminal(derived)) {
-          terminalRef.current = true;
-          setUIState(derived);
-          if (derived === "success") {
-            fireSuccessOnce({
-              profileName: initial.profile_name,
-              domain: initial.domain,
-            });
+        const derived = applyState(initial);
+        if (!isTerminal(derived)) {
+          if (autoStart) {
+            connectStream(token);
           } else {
-            fireErrorOnce({
-              code: initial.error_code ?? undefined,
-              message:
-                initial.error_message ||
-                initial.website_error ||
-                (derived === "expired" ? "Session expired" : "Login failed"),
-            });
+            setUIState("prime");
           }
-        } else if (autoStart) {
-          setUIState("discovering");
-          connectStream(token);
-        } else {
-          setUIState("prime");
         }
       } catch (err) {
         if (exchangeRef.current !== ref || !ref.active) return;
@@ -412,29 +468,9 @@ export function useManagedAuthSession(
               await retrieveManagedAuth(sessionId, jwt, options),
             );
             if (!isActive()) return;
-            stateRef.current = fresh;
-            setState(fresh);
-            const nextUI = deriveUIState(fresh);
-            setUIState(nextUI);
+            const nextUI = applyState(fresh);
             setSubmitError(msg);
-            if (isTerminal(nextUI)) {
-              terminalRef.current = true;
-              if (nextUI === "success") {
-                fireSuccessOnce({
-                  profileName: fresh.profile_name,
-                  domain: fresh.domain,
-                });
-              } else {
-                fireErrorOnce({
-                  code: fresh.error_code ?? undefined,
-                  message:
-                    fresh.error_message ||
-                    fresh.website_error ||
-                    (nextUI === "expired" ? "Session expired" : "Login failed"),
-                });
-              }
-              disconnectStream();
-            } else {
+            if (!isTerminal(nextUI)) {
               connectStream(jwt);
             }
             return;
@@ -466,10 +502,10 @@ export function useManagedAuthSession(
       jwt,
       sessionId,
       options,
-      fireSuccessOnce,
       fireErrorOnce,
       disconnectStream,
       connectStream,
+      applyState,
     ],
   );
 

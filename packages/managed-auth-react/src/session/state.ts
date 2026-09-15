@@ -40,12 +40,8 @@ function fieldTypeToDiscoveredType(
   field: ManagedAuthField,
 ): DiscoveredField["type"] {
   switch (field.type) {
-    case "identifier": {
-      const ref = field.ref.toLowerCase();
-      if (ref.includes("email")) return "email";
-      if (ref.includes("phone") || ref.includes("tel")) return "tel";
+    case "identifier":
       return "text";
-    }
     case "totp_code":
       return "totp";
     case "totp_secret":
@@ -69,6 +65,7 @@ function fieldsFromCanonical(
       ref: field.ref,
       name: field.id,
       type: fieldTypeToDiscoveredType(field),
+      ...(field.input_mode ? { input_mode: field.input_mode } : {}),
       label: field.label || field.ref,
       placeholder: legacyField?.placeholder,
       required: field.required ?? true,

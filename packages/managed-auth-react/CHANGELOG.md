@@ -1,5 +1,13 @@
 # @onkernel/managed-auth-react
 
+## 0.5.3
+
+### Patch Changes
+
+- [#29](https://github.com/kernel/managed-auth-react/pull/29) [`8eadd7a`](https://github.com/kernel/managed-auth-react/commit/8eadd7a02fcb59822afa1d61050134e7e828e757) Thanks [@masnwilliams](https://github.com/masnwilliams)! - Apply canonical field input modes as virtual keyboard hints without enabling browser format validation.
+
+- [#28](https://github.com/kernel/managed-auth-react/pull/28) [`3261be8`](https://github.com/kernel/managed-auth-react/commit/3261be8f5bf8a8adcace8f19241ab22c77f3f225) Thanks [@masnwilliams](https://github.com/masnwilliams)! - Render canonical identifier fields as text inputs so combined username, email, and phone login fields accept every supported identifier format.
+
 ## 0.5.2
 
 ### Patch Changes

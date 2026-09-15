@@ -382,7 +382,12 @@ export function useManagedAuthSession(
 
   const startFlow = useCallback(() => {
     if (!jwt) return;
-    setUIState("discovering");
+    // The prime step can outlive discovery: the session may already be
+    // awaiting input by the time the user clicks through. Derive from the
+    // state we hold instead of assuming discovery is still running, or a
+    // ready form is replaced by a spinner with no event left to clear it.
+    const current = stateRef.current;
+    setUIState(current ? deriveUIState(current) : "discovering");
     connectStream(jwt);
   }, [jwt, connectStream]);
 

@@ -110,11 +110,13 @@ export async function retrieveManagedAuth(
   id: string,
   jwt: string,
   options?: ApiClientOptions,
+  signal?: AbortSignal,
 ): Promise<ManagedAuthResponse> {
   const f = getFetch(options);
   const res = await f(`${getBaseUrl(options)}/auth/connections/${id}`, {
     method: "GET",
     headers: { Authorization: `Bearer ${jwt}` },
+    signal,
   });
   if (!res.ok) {
     throw await responseError(res);

@@ -35,6 +35,18 @@ function awaitingInputState(): ManagedAuthResponse {
   };
 }
 
+function discoveringState(): ManagedAuthResponse {
+  return {
+    id: "session-id",
+    domain: "example.com",
+    profile_name: "profile",
+    flow_status: "IN_PROGRESS",
+    flow_step: "DISCOVERING",
+    fields: [],
+    choices: [],
+  };
+}
+
 function deferred<T>(): {
   promise: Promise<T>;
   resolve: (value: T) => void;
@@ -180,6 +192,52 @@ describe("useManagedAuthSession initialization", () => {
     expect(value!.isInitializing).toBe(false);
   });
 
+  test("keeps a ready form when the prime step is dismissed", async () => {
+    let value: ManagedAuthSessionValue | null = null;
+    let retrieveRequests = 0;
+
+    const fetchImpl = (async (
+      input: RequestInfo | URL,
+      init?: RequestInit,
+    ): Promise<Response> => {
+      const url = String(input);
+      if (url.endsWith("/exchange")) return response({ jwt: "jwt" });
+      if (url.endsWith("/events")) return new Promise<Response>(() => {});
+      if (init?.method === "GET") {
+        retrieveRequests++;
+        return response(awaitingInputState());
+      }
+      throw new Error(`Unexpected request: ${init?.method} ${url}`);
+    }) as typeof fetch;
+
+    function Harness() {
+      value = useManagedAuthSession({
+        sessionId: "session-id",
+        handoffCode: "handoff-code",
+        fetch: fetchImpl,
+      });
+      return null;
+    }
+
+    await act(async () => {
+      renderer = create(createElement(Harness));
+      await flushPromises();
+    });
+
+    expect(value!.uiState).toBe("prime");
+
+    // Discovery finished while the prime step was on screen. Continuing has
+    // to show the fields that are already waiting: the session has no further
+    // transition to publish, so nothing would ever clear a spinner here.
+    await act(async () => {
+      value!.startFlow();
+      await flushPromises();
+    });
+
+    expect(value!.uiState).toBe("awaiting_input");
+    expect(retrieveRequests).toBe(1);
+  });
+
   test("leaves initialization when the handoff exchange fails", async () => {
     let value: ManagedAuthSessionValue | null = null;
     const fetchImpl = (async (_input: RequestInfo | URL, _init?: RequestInit) =>
@@ -202,6 +260,82 @@ describe("useManagedAuthSession initialization", () => {
     expect(value!.uiState).toBe("error");
     expect(value!.isInitializing).toBe(false);
     expect(value!.initError).toBe("Invalid handoff");
+  });
+
+  test("preserves input readiness when an auto-start session is already awaiting input", async () => {
+    const session = await renderSession(
+      Promise.resolve(response(awaitingInputState())),
+    );
+
+    expect(session.value.uiState).toBe("awaiting_input");
+    expect(session.value.state?.flow_step).toBe("AWAITING_INPUT");
+  });
+
+  test("refreshes silent discovery after 15 seconds and stops when input is ready", async () => {
+    const originalSetTimeout = globalThis.setTimeout;
+    const discoveryTimeouts: Array<() => void> = [];
+    let retrieveRequests = 0;
+    let value: ManagedAuthSessionValue | null = null;
+
+    globalThis.setTimeout = ((
+      handler: TimerHandler,
+      timeout?: number,
+      ...args: unknown[]
+    ) => {
+      if (timeout === 15_000 && typeof handler === "function") {
+        discoveryTimeouts.push(() => handler(...args));
+        return 1 as unknown as ReturnType<typeof setTimeout>;
+      }
+      return originalSetTimeout(handler, timeout, ...args);
+    }) as typeof setTimeout;
+
+    const fetchImpl = (async (
+      input: RequestInfo | URL,
+      init?: RequestInit,
+    ): Promise<Response> => {
+      const url = String(input);
+      if (url.endsWith("/exchange")) return response({ jwt: "jwt" });
+      if (url.endsWith("/events")) return new Promise<Response>(() => {});
+      if (init?.method === "GET") {
+        retrieveRequests++;
+        return response(
+          retrieveRequests === 1 ? discoveringState() : awaitingInputState(),
+        );
+      }
+      throw new Error(`Unexpected request: ${init?.method} ${url}`);
+    }) as typeof fetch;
+
+    function Harness() {
+      value = useManagedAuthSession({
+        sessionId: "session-id",
+        handoffCode: "handoff-code",
+        autoStart: true,
+        fetch: fetchImpl,
+      });
+      return null;
+    }
+
+    try {
+      await act(async () => {
+        renderer = create(createElement(Harness));
+        await flushPromises();
+      });
+
+      expect(value!.uiState).toBe("discovering");
+      expect(retrieveRequests).toBe(1);
+      expect(discoveryTimeouts).toHaveLength(1);
+
+      await act(async () => {
+        discoveryTimeouts[0]!();
+        await flushPromises();
+      });
+
+      expect(value!.uiState).toBe("awaiting_input");
+      expect(retrieveRequests).toBe(2);
+      expect(discoveryTimeouts).toHaveLength(1);
+    } finally {
+      globalThis.setTimeout = originalSetTimeout;
+    }
   });
 });
 

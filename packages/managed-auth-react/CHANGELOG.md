@@ -1,5 +1,15 @@
 # @onkernel/managed-auth-react
 
+## 0.5.4
+
+### Patch Changes
+
+- [#33](https://github.com/kernel/managed-auth-react/pull/33) [`c91e582`](https://github.com/kernel/managed-auth-react/commit/c91e5820bbbf82fb4f3117ef760f29143571b856) Thanks [@aylee855](https://github.com/aylee855)! - Preserve input-ready session state when skipping the prime step and refresh discovery state after 15 seconds without updates. Share snapshot recovery across discovery, reconnects, and stale submissions; reconcile overlapping live updates instead of discarding potentially newer state, and cancel obsolete requests when submitting or leaving a session.
+
+- [#33](https://github.com/kernel/managed-auth-react/pull/33) [`c91e582`](https://github.com/kernel/managed-auth-react/commit/c91e5820bbbf82fb4f3117ef760f29143571b856) Thanks [@aylee855](https://github.com/aylee855)! - Keep an already-ready login form visible when the consent step is dismissed, instead of replacing it with a loading state that no later event will clear.
+
+- [#36](https://github.com/kernel/managed-auth-react/pull/36) [`c354962`](https://github.com/kernel/managed-auth-react/commit/c354962710317375f22d407c80a82d478bbf2653) Thanks [@aylee855](https://github.com/aylee855)! - Preserve scheduled reconnect delays when a concurrent state refresh finishes, so snapshot recovery cannot reconnect early or restart the retry wait.
+
 ## 0.5.3
 
 ### Patch Changes

@@ -35,7 +35,8 @@ export function createSessionTransport(options: TransportOptions) {
   let pending: Promise<void> | null = null;
   let needsSnapshot = false;
   let needsReconnect = false;
-  let attempts = 0;
+  let reconnectAttempts = 0;
+  let snapshotAttempts = 0;
 
   function clearTimer() {
     if (timer !== null) clearTimeout(timer);
@@ -82,6 +83,7 @@ export function createSessionTransport(options: TransportOptions) {
     if (!needsReconnect && (submitting || (!needsSnapshot && !discovering))) {
       return;
     }
+    const attempts = needsReconnect ? reconnectAttempts : snapshotAttempts;
     const delay =
       needsSnapshot || needsReconnect
         ? Math.min(
@@ -105,7 +107,7 @@ export function createSessionTransport(options: TransportOptions) {
     const reconnect = () => {
       closeStream();
       needsReconnect = true;
-      attempts = Math.min(attempts + 1, 5);
+      reconnectAttempts = Math.min(reconnectAttempts + 1, 5);
       options.onReconnecting(true);
       schedule();
     };
@@ -116,6 +118,7 @@ export function createSessionTransport(options: TransportOptions) {
         onState(event) {
           if (!isCurrent()) return;
           revision++;
+          reconnectAttempts = 0;
           options.onReconnecting(false);
           apply(mergeStateEvent(current, event));
           schedule();
@@ -151,7 +154,7 @@ export function createSessionTransport(options: TransportOptions) {
       // A live event cannot tell us whether the GET was older or newer.
       // Re-read even when that event has already made the form input-ready.
       needsSnapshot = true;
-      attempts = Math.min(attempts + 1, 5);
+      snapshotAttempts = Math.min(snapshotAttempts + 1, 5);
     };
     pending = (async () => {
       try {
@@ -166,7 +169,7 @@ export function createSessionTransport(options: TransportOptions) {
           retry();
         } else {
           needsSnapshot = false;
-          attempts = 0;
+          snapshotAttempts = 0;
           apply(fresh);
         }
       } catch (error) {

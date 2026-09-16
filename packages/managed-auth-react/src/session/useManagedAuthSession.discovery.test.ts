@@ -171,6 +171,9 @@ async function renderDiscoverySession(autoStart: boolean) {
     get reads() {
       return reads;
     },
+    get streamCount() {
+      return streams.length;
+    },
     errors,
     successes,
     laterResponses,
@@ -455,9 +458,61 @@ test("stale submission recovery retries a transient snapshot failure", async () 
   await act(async () =>
     session.value.submitFields({ email: "person@example.com" }),
   );
+  expect(session.value.uiState).toBe("awaiting_input");
+  expect(session.value.submitError).toBe("Interaction is stale");
+  expect(session.value.isSubmitting).toBe(false);
   await clock.advance(1_000);
   expect(session.value.uiState).toBe("awaiting_input");
   expect(session.value.state?.interaction_id).toBe("refreshed-input");
   expect(session.value.isSubmitting).toBe(false);
   expect(session.errors).toEqual([]);
+});
+
+test("resets reconnect delay after a live event despite snapshot conflicts", async () => {
+  const session = await renderDiscoverySession(true);
+  await session.emit(ready);
+  await session.closeStream();
+  await clock.advance(1_000);
+  await session.emit(ready);
+  await act(async () => session.refresh.resolve(response(ready)));
+  await session.closeStream();
+  const streamsBeforeReconnect = session.streamCount;
+  await clock.advance(999);
+  expect(session.streamCount).toBe(streamsBeforeReconnect);
+  await clock.advance(1);
+  expect(session.streamCount).toBe(streamsBeforeReconnect + 1);
+  await session.emit({ ...ready, flow_status: "SUCCESS" });
+  expect(session.value.uiState).toBe("success");
+});
+
+test("keeps reconnect backoff when snapshots succeed but the stream never recovers", async () => {
+  const session = await renderDiscoverySession(true);
+  await session.closeStream();
+  await act(async () => session.refresh.resolve(response(ready)));
+  await clock.advance(1_000);
+  expect(session.streamCount).toBe(2);
+  await session.closeStream();
+  await clock.advance(1_999);
+  expect(session.streamCount).toBe(2);
+  await clock.advance(1);
+  expect(session.streamCount).toBe(3);
+});
+
+test("preserves success reached during stale submission recovery", async () => {
+  const session = await renderDiscoverySession(true);
+  await session.emit(ready);
+  session.submission.resolve(
+    response(
+      { code: "stale_interaction", message: "Interaction is stale" },
+      400,
+    ),
+  );
+  session.refresh.resolve(response({ ...ready, flow_status: "SUCCESS" }));
+  await act(async () =>
+    session.value.submitFields({ email: "person@example.com" }),
+  );
+  expect(session.value.uiState).toBe("success");
+  expect(session.successes).toEqual(["profile"]);
+  await clock.advance(60_000);
+  expect(session.reads).toBe(2);
 });

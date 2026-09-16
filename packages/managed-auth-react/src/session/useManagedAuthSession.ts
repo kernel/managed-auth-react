@@ -292,6 +292,11 @@ export function useManagedAuthSession(
           await transport?.resync();
           if (!isActive()) return;
           setSubmitError(msg);
+          setUIState((current) =>
+            current === "submitting" && stateRef.current
+              ? deriveUIState(stateRef.current)
+              : current,
+          );
           return;
         }
         setSubmitError(msg);

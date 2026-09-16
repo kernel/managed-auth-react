@@ -498,6 +498,39 @@ test("keeps reconnect backoff when snapshots succeed but the stream never recove
   expect(session.streamCount).toBe(3);
 });
 
+test.each([200, 503])(
+  "preserves the reconnect deadline when a pending snapshot settles (%i)",
+  async (status) => {
+    const session = await renderDiscoverySession(true);
+    await session.closeStream();
+    await clock.advance(1_000);
+    expect(session.streamCount).toBe(2);
+    await session.closeStream();
+    await clock.advance(500);
+    await act(async () => session.refresh.resolve(response(ready, status)));
+    expect(session.streamCount).toBe(2);
+    await clock.advance(1_499);
+    expect(session.streamCount).toBe(2);
+    await clock.advance(1);
+    expect(session.streamCount).toBe(3);
+    await session.emit({ ...ready, flow_status: "SUCCESS" });
+    expect(session.value.uiState).toBe("success");
+  },
+);
+
+test("cancels a scheduled reconnect when a pending snapshot reports success", async () => {
+  const session = await renderDiscoverySession(true);
+  await session.closeStream();
+  await clock.advance(1_000);
+  await session.closeStream();
+  await act(async () =>
+    session.refresh.resolve(response({ ...ready, flow_status: "SUCCESS" })),
+  );
+  expect(session.value.uiState).toBe("success");
+  await clock.advance(60_000);
+  expect(session.streamCount).toBe(2);
+});
+
 test("preserves success reached during stale submission recovery", async () => {
   const session = await renderDiscoverySession(true);
   await session.emit(ready);

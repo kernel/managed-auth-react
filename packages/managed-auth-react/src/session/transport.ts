@@ -31,6 +31,7 @@ export function createSessionTransport(options: TransportOptions) {
   let streamGeneration = 0;
   let disconnect: (() => void) | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
+  let reconnectTimer = false;
   let request: AbortController | null = null;
   let pending: Promise<void> | null = null;
   let needsSnapshot = false;
@@ -41,6 +42,7 @@ export function createSessionTransport(options: TransportOptions) {
   function clearTimer() {
     if (timer !== null) clearTimeout(timer);
     timer = null;
+    reconnectTimer = false;
   }
 
   function closeStream() {
@@ -78,6 +80,7 @@ export function createSessionTransport(options: TransportOptions) {
   }
 
   function schedule() {
+    if (needsReconnect && timer !== null && reconnectTimer) return;
     clearTimer();
     if (!active || !started || (pending && !needsReconnect)) return;
     if (!needsReconnect && (submitting || (!needsSnapshot && !discovering))) {
@@ -91,8 +94,10 @@ export function createSessionTransport(options: TransportOptions) {
             DISCOVERY_REFRESH_MS,
           )
         : DISCOVERY_REFRESH_MS;
+    reconnectTimer = needsReconnect;
     timer = setTimeout(() => {
       timer = null;
+      reconnectTimer = false;
       if (needsReconnect) openStream();
       if (!submitting) void reconcile();
     }, delay);
@@ -188,7 +193,6 @@ export function createSessionTransport(options: TransportOptions) {
         if (isCurrent()) {
           pending = null;
           request = null;
-          if (needsReconnect) openStream();
           schedule();
         }
       }

@@ -3,10 +3,8 @@ import {
   exchangeHandoffCode,
   ManagedAuthApiError,
   retrieveManagedAuth,
-  streamManagedAuthEvents,
   submitManagedAuth,
   type ApiClientOptions,
-  type ManagedAuthStateEventData,
 } from "../lib/api";
 import type {
   AuthErrorPayload,
@@ -16,17 +14,14 @@ import type {
   SSOButton,
   UIState,
 } from "../lib/types";
-import { mergeStateEvent, normalizeManagedAuthState } from "./state";
+import { normalizeManagedAuthState } from "./state";
+import { createSessionTransport } from "./transport";
 import {
   buildFieldSubmission,
   buildMFASubmission,
   buildSignInSubmission,
   buildSSOSubmission,
 } from "./submission";
-
-const RECONNECT_BASE_MS = 1000;
-const RECONNECT_MAX_MS = 15000;
-const DISCOVERY_REFRESH_MS = 15000;
 
 function deriveUIState(state: ManagedAuthResponse): UIState {
   if (state.flow_status === "FAILED" || state.flow_status === "CANCELED") {
@@ -98,15 +93,10 @@ export function useManagedAuthSession(
   const [initError, setInitError] = useState<string | null>(null);
 
   const stateRef = useRef<ManagedAuthResponse | null>(null);
-  const disconnectRef = useRef<(() => void) | null>(null);
-  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const discoveryRefreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+  const transportRef = useRef<ReturnType<typeof createSessionTransport> | null>(
     null,
   );
-  const reconnectAttemptsRef = useRef(0);
-  const terminalRef = useRef(false);
   const generationRef = useRef(0);
-  const stateRevisionRef = useRef(0);
   const callbackFiredRef = useRef<{ success: boolean; error: boolean }>({
     success: false,
     error: false,
@@ -136,30 +126,17 @@ export function useManagedAuthSession(
   );
 
   const disconnectStream = useCallback(() => {
-    if (reconnectTimerRef.current) {
-      clearTimeout(reconnectTimerRef.current);
-      reconnectTimerRef.current = null;
-    }
-    if (discoveryRefreshTimerRef.current) {
-      clearTimeout(discoveryRefreshTimerRef.current);
-      discoveryRefreshTimerRef.current = null;
-    }
-    if (disconnectRef.current) {
-      disconnectRef.current();
-      disconnectRef.current = null;
-    }
+    transportRef.current?.stop();
   }, []);
 
   const applyState = useCallback(
     (next: ManagedAuthResponse): UIState => {
-      stateRevisionRef.current++;
       stateRef.current = next;
       setState(next);
       const nextUI = deriveUIState(next);
       setUIState(nextUI);
 
       if (nextUI === "success") {
-        terminalRef.current = true;
         setIsReconnecting(false);
         fireSuccessOnce({
           profileName: next.profile_name,
@@ -167,7 +144,6 @@ export function useManagedAuthSession(
         });
         disconnectStream();
       } else if (nextUI === "error" || nextUI === "expired") {
-        terminalRef.current = true;
         setIsReconnecting(false);
         fireErrorOnce({
           code: next.error_code ?? undefined,
@@ -182,179 +158,6 @@ export function useManagedAuthSession(
       return nextUI;
     },
     [disconnectStream, fireErrorOnce, fireSuccessOnce],
-  );
-
-  const connectStream = useCallback(
-    (token: string) => {
-      disconnectStream();
-      if (terminalRef.current) return;
-
-      const clearDiscoveryRefresh = () => {
-        if (discoveryRefreshTimerRef.current) {
-          clearTimeout(discoveryRefreshTimerRef.current);
-          discoveryRefreshTimerRef.current = null;
-        }
-      };
-
-      const scheduleDiscoveryRefresh = (t: string): void => {
-        clearDiscoveryRefresh();
-        const current = stateRef.current;
-        if (!current || deriveUIState(current) !== "discovering") return;
-
-        const generation = generationRef.current;
-        const stateRevision = stateRevisionRef.current;
-        discoveryRefreshTimerRef.current = setTimeout(() => {
-          discoveryRefreshTimerRef.current = null;
-          void (async () => {
-            if (
-              terminalRef.current ||
-              generation !== generationRef.current ||
-              stateRevision !== stateRevisionRef.current
-            ) {
-              return;
-            }
-
-            try {
-              const fresh = normalizeManagedAuthState(
-                await retrieveManagedAuth(sessionId, t, options),
-              );
-              if (
-                terminalRef.current ||
-                generation !== generationRef.current ||
-                stateRevision !== stateRevisionRef.current
-              ) {
-                return;
-              }
-
-              const nextUI = applyState(fresh);
-              if (nextUI === "discovering") {
-                scheduleDiscoveryRefresh(t);
-              }
-            } catch (err) {
-              if (
-                terminalRef.current ||
-                generation !== generationRef.current ||
-                stateRevision !== stateRevisionRef.current
-              ) {
-                return;
-              }
-              const status =
-                err instanceof ManagedAuthApiError ? err.status : undefined;
-              if (status === 401 || status === 410) {
-                terminalRef.current = true;
-                setUIState("expired");
-                fireErrorOnce({ message: "Session expired" });
-                disconnectStream();
-              } else {
-                scheduleDiscoveryRefresh(t);
-              }
-            }
-          })();
-        }, DISCOVERY_REFRESH_MS);
-      };
-
-      const handleStateEvent = (ev: ManagedAuthStateEventData) => {
-        clearDiscoveryRefresh();
-        reconnectAttemptsRef.current = 0;
-        setIsReconnecting(false);
-        setSubmitError(null);
-        const base = stateRef.current;
-        if (!base) return;
-        const merged = normalizeManagedAuthState(mergeStateEvent(base, ev));
-        const nextUI = applyState(merged);
-        if (nextUI === "discovering") {
-          scheduleDiscoveryRefresh(token);
-        }
-      };
-
-      const scheduleReconnect = () => {
-        if (terminalRef.current) return;
-        clearDiscoveryRefresh();
-        if (reconnectTimerRef.current) {
-          clearTimeout(reconnectTimerRef.current);
-          reconnectTimerRef.current = null;
-        }
-        setIsReconnecting(true);
-        const attempt = reconnectAttemptsRef.current++;
-        const delay = Math.min(
-          RECONNECT_BASE_MS * Math.pow(2, attempt),
-          RECONNECT_MAX_MS,
-        );
-        reconnectTimerRef.current = setTimeout(() => {
-          reconnectTimerRef.current = null;
-          void resyncAndConnect(token);
-        }, delay);
-      };
-
-      const resyncAndConnect = async (t: string) => {
-        const gen = generationRef.current;
-        const stateRevision = stateRevisionRef.current;
-        if (terminalRef.current) return;
-        try {
-          const fresh = normalizeManagedAuthState(
-            await retrieveManagedAuth(sessionId, t, options),
-          );
-          if (gen !== generationRef.current) return;
-          if (terminalRef.current) return;
-          if (stateRevision === stateRevisionRef.current) {
-            const derived = applyState(fresh);
-            if (isTerminal(derived)) return;
-          }
-          connectStream(t);
-        } catch (err) {
-          if (gen !== generationRef.current) return;
-          if (terminalRef.current) return;
-          if (stateRevision !== stateRevisionRef.current) {
-            connectStream(t);
-            return;
-          }
-          const status =
-            err instanceof ManagedAuthApiError ? err.status : undefined;
-          if (status === 401 || status === 410) {
-            terminalRef.current = true;
-            setIsReconnecting(false);
-            setUIState("expired");
-            fireErrorOnce({ message: "Session expired" });
-            return;
-          }
-          scheduleReconnect();
-        }
-      };
-
-      disconnectRef.current = streamManagedAuthEvents(
-        sessionId,
-        token,
-        {
-          onState: handleStateEvent,
-          onError: (err) => {
-            disconnectRef.current = null;
-            if (err.status === 401 || err.status === 410) {
-              terminalRef.current = true;
-              setIsReconnecting(false);
-              setUIState("expired");
-              fireErrorOnce({ message: "Session expired" });
-              return;
-            }
-            if (err.fatal) {
-              terminalRef.current = true;
-              setIsReconnecting(false);
-              setUIState("error");
-              fireErrorOnce({ message: err.message });
-              return;
-            }
-            scheduleReconnect();
-          },
-          onClose: () => {
-            disconnectRef.current = null;
-            if (terminalRef.current) return;
-            scheduleReconnect();
-          },
-        },
-        options,
-      );
-      scheduleDiscoveryRefresh(token);
-    },
-    [applyState, disconnectStream, fireErrorOnce, options, sessionId],
   );
 
   useEffect(() => {
@@ -388,9 +191,6 @@ export function useManagedAuthSession(
       return cleanup;
     }
 
-    terminalRef.current = false;
-    reconnectAttemptsRef.current = 0;
-    stateRevisionRef.current++;
     callbackFiredRef.current = { success: false, error: false };
     stateRef.current = null;
     setJwt(null);
@@ -419,10 +219,25 @@ export function useManagedAuthSession(
         );
         if (exchangeRef.current !== ref || !ref.active) return;
         setIsInitializing(false);
+        transportRef.current = createSessionTransport({
+          sessionId,
+          token,
+          api: options,
+          initial,
+          onState: (next) => {
+            setSubmitError(null);
+            return applyState(next);
+          },
+          onFailure: (ui, message) => {
+            setUIState(ui);
+            fireErrorOnce({ message });
+          },
+          onReconnecting: setIsReconnecting,
+        });
         const derived = applyState(initial);
         if (!isTerminal(derived)) {
           if (autoStart) {
-            connectStream(token);
+            transportRef.current.start();
           } else {
             setUIState("prime");
           }
@@ -434,7 +249,6 @@ export function useManagedAuthSession(
         setIsInitializing(false);
         setInitError(message);
         setUIState("error");
-        terminalRef.current = true;
         fireErrorOnce({ message });
       }
     })();
@@ -450,8 +264,8 @@ export function useManagedAuthSession(
     // ready form is replaced by a spinner with no event left to clear it.
     const current = stateRef.current;
     setUIState(current ? deriveUIState(current) : "discovering");
-    connectStream(jwt);
-  }, [jwt, connectStream]);
+    transportRef.current?.start();
+  }, [jwt]);
 
   const submit = useCallback(
     async (fn: () => Promise<void>, onFail: string) => {
@@ -461,8 +275,9 @@ export function useManagedAuthSession(
         generation === generationRef.current &&
         exchangeRef.current?.active === true;
 
+      const transport = transportRef.current;
+      transport?.beginSubmission();
       setIsSubmitting(true);
-      stateRevisionRef.current++;
       setSubmitError(null);
       setUIState("submitting");
       try {
@@ -474,51 +289,23 @@ export function useManagedAuthSession(
           err instanceof ManagedAuthApiError &&
           err.code === "stale_interaction"
         ) {
-          try {
-            disconnectStream();
-            const fresh = normalizeManagedAuthState(
-              await retrieveManagedAuth(sessionId, jwt, options),
-            );
-            if (!isActive()) return;
-            const nextUI = applyState(fresh);
-            setSubmitError(msg);
-            if (!isTerminal(nextUI)) {
-              connectStream(jwt);
-            }
-            return;
-          } catch (refreshError) {
-            if (!isActive()) return;
-            const status =
-              refreshError instanceof ManagedAuthApiError
-                ? refreshError.status
-                : undefined;
-            if (status === 401 || status === 410) {
-              terminalRef.current = true;
-              setIsReconnecting(false);
-              setUIState("expired");
-              fireErrorOnce({ message: "Session expired" });
-              return;
-            }
-            connectStream(jwt);
-          }
+          await transport?.resync();
+          if (!isActive()) return;
+          setSubmitError(msg);
+          return;
         }
         setSubmitError(msg);
         setUIState((current) =>
           isTerminal(current) ? current : "awaiting_input",
         );
       } finally {
-        if (isActive()) setIsSubmitting(false);
+        if (isActive()) {
+          transport?.endSubmission();
+          setIsSubmitting(false);
+        }
       }
     },
-    [
-      jwt,
-      sessionId,
-      options,
-      fireErrorOnce,
-      disconnectStream,
-      connectStream,
-      applyState,
-    ],
+    [jwt],
   );
 
   const submitFields = useCallback(

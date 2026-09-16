@@ -192,6 +192,52 @@ describe("useManagedAuthSession initialization", () => {
     expect(value!.isInitializing).toBe(false);
   });
 
+  test("keeps a ready form when the prime step is dismissed", async () => {
+    let value: ManagedAuthSessionValue | null = null;
+    let retrieveRequests = 0;
+
+    const fetchImpl = (async (
+      input: RequestInfo | URL,
+      init?: RequestInit,
+    ): Promise<Response> => {
+      const url = String(input);
+      if (url.endsWith("/exchange")) return response({ jwt: "jwt" });
+      if (url.endsWith("/events")) return new Promise<Response>(() => {});
+      if (init?.method === "GET") {
+        retrieveRequests++;
+        return response(awaitingInputState());
+      }
+      throw new Error(`Unexpected request: ${init?.method} ${url}`);
+    }) as typeof fetch;
+
+    function Harness() {
+      value = useManagedAuthSession({
+        sessionId: "session-id",
+        handoffCode: "handoff-code",
+        fetch: fetchImpl,
+      });
+      return null;
+    }
+
+    await act(async () => {
+      renderer = create(createElement(Harness));
+      await flushPromises();
+    });
+
+    expect(value!.uiState).toBe("prime");
+
+    // Discovery finished while the prime step was on screen. Continuing has
+    // to show the fields that are already waiting: the session has no further
+    // transition to publish, so nothing would ever clear a spinner here.
+    await act(async () => {
+      value!.startFlow();
+      await flushPromises();
+    });
+
+    expect(value!.uiState).toBe("awaiting_input");
+    expect(retrieveRequests).toBe(1);
+  });
+
   test("leaves initialization when the handoff exchange fails", async () => {
     let value: ManagedAuthSessionValue | null = null;
     const fetchImpl = (async (_input: RequestInfo | URL, _init?: RequestInit) =>

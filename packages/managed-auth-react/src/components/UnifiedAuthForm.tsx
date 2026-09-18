@@ -250,7 +250,9 @@ export function UnifiedAuthForm({
     <form
       onSubmit={(e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        onSubmitFields(formData);
+        if (isLoading) return;
+        const submitted = new FormData(e.currentTarget);
+        onSubmitFields(Object.fromEntries(fields.map((field) => [field.name, String(submitted.get(field.name) ?? "")])));
       }}
       {...slot("form", "kma-form")}
     >
@@ -271,6 +273,7 @@ export function UnifiedAuthForm({
                 required={field.required}
                 autoComplete={getAutocomplete(field)}
                 aria-describedby={getDescriptionIds(field)}
+                readOnly={isLoading}
                 value={formData[field.name] || ""}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -307,7 +310,8 @@ export function UnifiedAuthForm({
               required={field.required}
               autoComplete={getAutocomplete(field)}
               aria-describedby={getDescriptionIds(field)}
-              value={formData[field.name] || ""}
+              readOnly={isLoading}
+                value={formData[field.name] || ""}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,

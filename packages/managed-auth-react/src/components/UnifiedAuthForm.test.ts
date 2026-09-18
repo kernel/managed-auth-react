@@ -163,3 +163,46 @@ describe("UnifiedAuthForm", () => {
     act(() => renderer.unmount());
   });
 });
+
+describe("browser autofill and pending submission", () => {
+  test("submits current controls without requiring change events and locks both input variants", () => {
+    const original = globalThis.FormData;
+    let received: Record<string, string> | undefined;
+    let renderer!: ReturnType<typeof create>;
+    const currentForm = {};
+    // Model browser FormData: values can arrive without any React onChange.
+    globalThis.FormData = class {
+      constructor(form: unknown) { expect(form).toBe(currentForm); }
+      get(name: string) { return name === "password" ? "autofilled-password" : "autofilled-identifier"; }
+    } as unknown as typeof FormData;
+    const render = (isLoading: boolean) => createElement(AppearanceProvider, {
+      children: createElement(LocalizationProvider, {
+        children: createElement(UnifiedAuthForm, {
+          targetDomain: "example.com", isLoading,
+          fields: [
+            { name: "identifier", label: "Identifier", type: "text" },
+            { name: "password", label: "Password", type: "password" },
+          ],
+          onSubmitFields: values => { received = values; },
+          onSSOClick: () => {}, onMFASelect: () => {}, onSignInOptionSelect: () => {},
+        }),
+      }),
+    });
+    try {
+      act(() => { renderer = create(render(false)); });
+      act(() => renderer.root.findByType("form").props.onSubmit({ preventDefault() {}, currentTarget: currentForm }));
+      expect(received).toEqual({ identifier: "autofilled-identifier", password: "autofilled-password" });
+      act(() => renderer.update(render(true)));
+      for (const input of renderer.root.findAllByType("input")) {
+        expect(input.props.readOnly).toBe(true);
+        expect(input.props.disabled).not.toBe(true);
+      }
+      received = undefined;
+      act(() => renderer.root.findByType("form").props.onSubmit({ preventDefault() {}, currentTarget: currentForm }));
+      expect(received).toBeUndefined();
+    } finally {
+      globalThis.FormData = original;
+      act(() => renderer.unmount());
+    }
+  });
+});

@@ -54,7 +54,8 @@
     "react-dom": ">=18"
   },
   "dependencies": {
-    "clsx": "^2.1.1"
+    "clsx": "^2.1.1",
+    "tldts": "7.4.15"
   },
   "devDependencies": {
     "@types/react": "^18",

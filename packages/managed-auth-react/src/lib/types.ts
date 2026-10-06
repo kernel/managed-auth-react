@@ -13,6 +13,7 @@ export type FlowStep =
   | "DISCOVERING"
   | "AWAITING_INPUT"
   | "AWAITING_EXTERNAL_ACTION"
+  | "AWAITING_HUMAN_INTERVENTION"
   | "SUBMITTING"
   | "COMPLETED";
 
@@ -155,6 +156,7 @@ export type UIState =
   | "discovering"
   | "awaiting_input"
   | "awaiting_external_action"
+  | "awaiting_human_intervention"
   | "submitting"
   | "success"
   | "expired"

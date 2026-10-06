@@ -1,5 +1,11 @@
 # @onkernel/managed-auth-react
 
+## 0.5.5
+
+### Patch Changes
+
+- [#38](https://github.com/kernel/managed-auth-react/pull/38) [`3e540f3`](https://github.com/kernel/managed-auth-react/commit/3e540f352327699d8fdccdb2a3c66e5264cb3e04) Thanks [@chruffins](https://github.com/chruffins)! - Use the public suffix list to derive the site label shown on the initial auth screen.
+
 ## 0.5.4
 
 ### Patch Changes

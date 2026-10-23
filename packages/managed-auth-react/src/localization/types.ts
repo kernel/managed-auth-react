@@ -63,6 +63,14 @@ export interface Localization {
   externalActionTitle?: string;
   externalActionFallbackMessage?: string;
   externalActionWaiting?: string;
+  /** Human intervention (CAPTCHA the browser could not solve). */
+  humanInterventionTitle?: string;
+  humanInterventionMessage?: (site: string) => string;
+  humanInterventionDone?: string;
+  humanInterventionLiveViewTitle?: string;
+  humanInterventionLiveViewUnavailable?: string;
+  humanInterventionLiveViewFailed?: string;
+  humanInterventionRetry?: string;
 }
 
 export type Localizer = Required<Localization>;

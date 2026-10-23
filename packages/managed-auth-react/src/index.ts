@@ -31,6 +31,7 @@ export { StepError } from "./components/StepError";
 export { StepExpired } from "./components/StepExpired";
 export { LoadingState } from "./components/LoadingState";
 export { ExternalActionWaiting } from "./components/ExternalActionWaiting";
+export { HumanInterventionStep } from "./components/HumanInterventionStep";
 export { UnifiedAuthForm } from "./components/UnifiedAuthForm";
 
 export type {

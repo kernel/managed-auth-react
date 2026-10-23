@@ -18,6 +18,7 @@ import { normalizeManagedAuthState } from "./state";
 import { createSessionTransport } from "./transport";
 import {
   buildFieldSubmission,
+  buildHumanInterventionSubmission,
   buildMFASubmission,
   buildSignInSubmission,
   buildSSOSubmission,
@@ -37,6 +38,8 @@ function deriveUIState(state: ManagedAuthResponse): UIState {
       return "awaiting_input";
     case "AWAITING_EXTERNAL_ACTION":
       return "awaiting_external_action";
+    case "AWAITING_HUMAN_INTERVENTION":
+      return "awaiting_human_intervention";
     case "SUBMITTING":
       return "submitting";
     default:
@@ -70,6 +73,7 @@ export interface ManagedAuthSessionValue {
   submitSSO: (button: SSOButton) => Promise<void>;
   submitMFA: (mfaType: MFAType, choiceId?: string) => Promise<void>;
   submitSignIn: (optionId: string) => Promise<void>;
+  completeHumanIntervention: () => Promise<void>;
 }
 
 /**
@@ -300,9 +304,12 @@ export function useManagedAuthSession(
           return;
         }
         setSubmitError(msg);
-        setUIState((current) =>
-          isTerminal(current) ? current : "awaiting_input",
-        );
+        setUIState((current) => {
+          if (isTerminal(current)) return current;
+          return stateRef.current?.flow_step === "AWAITING_HUMAN_INTERVENTION"
+            ? "awaiting_human_intervention"
+            : "awaiting_input";
+        });
       } finally {
         if (isActive()) {
           transport?.endSubmission();
@@ -381,6 +388,20 @@ export function useManagedAuthSession(
     [jwt, sessionId, submit, options],
   );
 
+  const completeHumanIntervention = useCallback(async () => {
+    if (!jwt) return;
+    return submit(
+      () =>
+        submitManagedAuth(
+          sessionId,
+          jwt,
+          buildHumanInterventionSubmission(stateRef.current),
+          options,
+        ),
+      "Failed to continue the login",
+    );
+  }, [jwt, sessionId, submit, options]);
+
   return {
     state,
     uiState,
@@ -394,5 +415,6 @@ export function useManagedAuthSession(
     submitSSO,
     submitMFA,
     submitSignIn,
+    completeHumanIntervention,
   };
 }

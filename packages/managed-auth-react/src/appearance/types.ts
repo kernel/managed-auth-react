@@ -123,6 +123,9 @@ export interface AppearanceElements {
   /** External action waiting screen. */
   externalActionIcon?: ElementValue;
   externalActionMessage?: ElementValue;
+  /** Human intervention screen. */
+  humanInterventionMessage?: ElementValue;
+  humanInterventionLiveView?: ElementValue;
   /** Form wrapper. */
   form?: ElementValue;
   formField?: ElementValue;

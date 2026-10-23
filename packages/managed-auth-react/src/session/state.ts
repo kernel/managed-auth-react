@@ -162,7 +162,9 @@ function signInOptionsFromCanonical(
   const options = choices
     .filter(
       (choice) =>
-        choice.type !== "sso_provider" && choice.type !== "mfa_method",
+        choice.type !== "sso_provider" &&
+        choice.type !== "mfa_method" &&
+        choice.type !== "human_intervention",
     )
     .map((choice) => ({
       id: choice.id,

@@ -98,7 +98,7 @@ describe("useManagedAuthSession human intervention", () => {
     const session = await renderSession(response({}));
 
     await act(async () => {
-      await session.value.completeHumanIntervention();
+      await session.value.submitSignIn("human_intervention_done");
     });
 
     expect(session.submissions).toEqual([
@@ -115,7 +115,7 @@ describe("useManagedAuthSession human intervention", () => {
     );
 
     await act(async () => {
-      await session.value.completeHumanIntervention();
+      await session.value.submitSignIn("human_intervention_done");
     });
 
     expect(session.value.uiState).toBe("awaiting_human_intervention");

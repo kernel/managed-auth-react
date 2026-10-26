@@ -156,6 +156,13 @@ function mfaOptionsFromCanonical(
   return options.length ? options : null;
 }
 
+/** The choice that resumes a human-intervention pause, if one is pending. */
+export function humanInterventionChoice(
+  state: ManagedAuthResponse | null,
+): ManagedAuthChoice | undefined {
+  return state?.choices?.find((choice) => choice.type === "human_intervention");
+}
+
 function signInOptionsFromCanonical(
   choices: ManagedAuthChoice[],
 ): SignInOption[] | null {

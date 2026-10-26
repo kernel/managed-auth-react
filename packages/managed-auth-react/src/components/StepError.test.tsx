@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { errorDisplayForCode } from "./StepError";
+import { createElement } from "react";
+import { act, create } from "react-test-renderer";
+import { errorDisplayForCode, StepError } from "./StepError";
 
 describe("errorDisplayForCode", () => {
   test("renders typed challenge outcomes with context-neutral copy", () => {
@@ -15,7 +17,7 @@ describe("errorDisplayForCode", () => {
     for (const [code, title] of cases) {
       const display = errorDisplayForCode(code);
       expect(display?.title).toBe(title);
-      expect(display?.description.toLowerCase()).not.toContain("reauth");
+      expect(display?.description?.toLowerCase()).not.toContain("reauth");
     }
   });
 
@@ -39,5 +41,40 @@ describe("errorDisplayForCode", () => {
     expect(display?.description).toContain("Try a fresh code");
     expect(invalidCredentials).toBeTruthy();
     expect(display).not.toEqual(invalidCredentials);
+  });
+});
+
+describe("StepError description", () => {
+  const timeout =
+    "A CAPTCHA blocked the login. A person was asked to complete it but didn't finish in time. Please try again.";
+
+  test("shows how a captcha_blocked flow ended instead of a fixed description", () => {
+    const hadWindow = "window" in globalThis;
+    if (!hadWindow) {
+      Object.assign(globalThis, {
+        window: { addEventListener() {}, removeEventListener() {} },
+        document: { readyState: "loading" },
+      });
+    }
+    let renderer!: ReturnType<typeof create>;
+    act(() => {
+      renderer = create(
+        createElement(StepError, {
+          targetDomain: "example.com",
+          errorCode: "captcha_blocked",
+          errorMessage: timeout,
+        }),
+      );
+    });
+    const texts = renderer.root
+      .findAll((node) => node.type === "p")
+      .map((node) => node.children.join(""));
+    expect(texts).toContain(timeout);
+    expect(renderer.root.findAll((node) => node.type === "button")).toEqual([]);
+    act(() => renderer.unmount());
+    if (!hadWindow) {
+      delete (globalThis as { window?: unknown }).window;
+      delete (globalThis as { document?: unknown }).document;
+    }
   });
 });

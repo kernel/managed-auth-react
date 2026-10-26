@@ -83,5 +83,9 @@ export const DEFAULT_LOCALIZATION: Localizer = {
   humanInterventionLiveViewUnavailable:
     "The login browser isn't available right now.",
   humanInterventionLiveViewFailed: "Couldn't connect to the login browser.",
+  humanInterventionLiveViewGaveUp:
+    "Couldn't connect to the login browser. Reload this page to try again.",
+  humanInterventionLiveViewUnsupported:
+    "Your browser can't show the login browser. Try a different browser.",
   humanInterventionRetry: "Try again",
 };

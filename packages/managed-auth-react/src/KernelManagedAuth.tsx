@@ -11,6 +11,7 @@ import { StepExpired } from "./components/StepExpired";
 import { LoadingState } from "./components/LoadingState";
 import { ExternalActionWaiting } from "./components/ExternalActionWaiting";
 import { HumanInterventionStep } from "./components/HumanInterventionStep";
+import { humanInterventionChoice } from "./session/state";
 import { useLocalization } from "./localization/context";
 import type { Appearance } from "./appearance/types";
 import type { Localization } from "./localization/types";
@@ -84,7 +85,6 @@ function KernelManagedAuthInner({
     submitSSO,
     submitMFA,
     submitSignIn,
-    completeHumanIntervention,
   } = session;
 
   const targetDomain = useMemo(() => state?.domain ?? "", [state?.domain]);
@@ -106,6 +106,24 @@ function KernelManagedAuthInner({
     );
   }
 
+  // Stays mounted while Continue is in flight so the live view isn't torn down.
+  const humanIntervention = humanInterventionChoice(state);
+  if (
+    humanIntervention &&
+    (uiState === "awaiting_human_intervention" || uiState === "submitting")
+  ) {
+    return (
+      <HumanInterventionStep
+        targetDomain={targetDomain}
+        liveViewUrl={state?.live_view_url}
+        onDone={() => submitSignIn(humanIntervention.id)}
+        isLoading={isSubmitting}
+        errorMessage={submitError ?? undefined}
+        note={humanIntervention.description}
+      />
+    );
+  }
+
   if (uiState === "submitting") {
     return (
       <LoadingState message={l.submittingMessage} variant="authenticating" />
@@ -119,22 +137,6 @@ function KernelManagedAuthInner({
         mfaOptions={state?.mfa_options ?? []}
         onMFASelect={submitMFA}
         isLoading={isSubmitting}
-      />
-    );
-  }
-
-  if (uiState === "awaiting_human_intervention") {
-    return (
-      <HumanInterventionStep
-        targetDomain={targetDomain}
-        liveViewUrl={state?.live_view_url}
-        onDone={completeHumanIntervention}
-        isLoading={isSubmitting}
-        errorMessage={submitError ?? undefined}
-        note={
-          state?.choices?.find((choice) => choice.type === "human_intervention")
-            ?.description
-        }
       />
     );
   }

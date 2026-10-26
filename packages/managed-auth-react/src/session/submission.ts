@@ -49,18 +49,6 @@ export function buildMFASubmission(
     : { fields: {}, mfa_option_id: type };
 }
 
-export function buildHumanInterventionSubmission(
-  state: ManagedAuthResponse | null,
-): ManagedAuthSubmitBody {
-  const choice = state?.choices?.find(
-    (candidate) => candidate.type === "human_intervention",
-  );
-  return {
-    interaction_id: interactionId(state),
-    selected_choice_id: canonicalChoiceId(choice?.id),
-  };
-}
-
 export function buildSignInSubmission(
   state: ManagedAuthResponse | null,
   optionId: string,

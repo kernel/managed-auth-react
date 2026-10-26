@@ -70,6 +70,8 @@ export interface Localization {
   humanInterventionLiveViewTitle?: string;
   humanInterventionLiveViewUnavailable?: string;
   humanInterventionLiveViewFailed?: string;
+  humanInterventionLiveViewGaveUp?: string;
+  humanInterventionLiveViewUnsupported?: string;
   humanInterventionRetry?: string;
 }
 

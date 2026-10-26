@@ -260,6 +260,7 @@ import {
   StepExpired,
   LoadingState,
   ExternalActionWaiting,
+  HumanInterventionStep,
   UnifiedAuthForm,
   AppearanceProvider,
   LocalizationProvider,
@@ -270,9 +271,13 @@ Wrap them in `<AppearanceProvider>` and `<LocalizationProvider>` to inherit the 
 
 ### Element keys
 
-`root`, `shell`, `card`, `poweredBy`, `poweredByLink`, `poweredByLogo`, `siteIcon`, `title`, `subtitle`, `description`, `securityCard`, `securityRow`, `securityIcon`, `securityText`, `label`, `inputWrapper`, `input`, `inputHint`, `passwordToggle`, `button`, `buttonPrimary`, `buttonSecondary`, `divider`, `dividerLine`, `dividerText`, `ssoButton`, `ssoButtonIcon`, `ssoButtonLabel`, `mfaOption`, `mfaOptionIcon`, `mfaOptionLabel`, `mfaOptionTarget`, `mfaOptionDescription`, `signInOption`, `signInOptionLabel`, `signInOptionDescription`, `signInOptionChevron`, `errorBanner`, `errorBannerText`, `errorIcon`, `errorTitle`, `errorDescription`, `errorCode`, `successIcon`, `successTitle`, `successDescription`, `expiredIcon`, `expiredCard`, `expiredTitle`, `expiredDescription`, `spinner`, `loadingText`, `externalActionIcon`, `externalActionMessage`, `form`, `formField`, `legalText`, `legalLink`.
+`root`, `shell`, `card`, `poweredBy`, `poweredByLink`, `poweredByLogo`, `siteIcon`, `title`, `subtitle`, `description`, `securityCard`, `securityRow`, `securityIcon`, `securityText`, `label`, `inputWrapper`, `input`, `inputHint`, `passwordToggle`, `button`, `buttonPrimary`, `buttonSecondary`, `divider`, `dividerLine`, `dividerText`, `ssoButton`, `ssoButtonIcon`, `ssoButtonLabel`, `mfaOption`, `mfaOptionIcon`, `mfaOptionLabel`, `mfaOptionTarget`, `mfaOptionDescription`, `signInOption`, `signInOptionLabel`, `signInOptionDescription`, `signInOptionChevron`, `errorBanner`, `errorBannerText`, `errorIcon`, `errorTitle`, `errorDescription`, `errorCode`, `successIcon`, `successTitle`, `successDescription`, `expiredIcon`, `expiredCard`, `expiredTitle`, `expiredDescription`, `spinner`, `loadingText`, `externalActionIcon`, `externalActionMessage`, `humanInterventionMessage`, `humanInterventionNote`, `humanInterventionLiveView`, `form`, `formField`, `legalText`, `legalLink`.
 
 `ssoButton`, `mfaOption`, and `signInOption` compose `button` → `buttonSecondary` → the slot-specific key, so any styling applied at `buttonSecondary` (e.g. a shared hover state) flows through to all three.
+
+## Human verification
+
+When a connection has `hitl` enabled and a login hits a CAPTCHA the browser can't solve, the flow pauses at `AWAITING_HUMAN_INTERVENTION` and the component embeds the login browser's live view so the person can complete the check, then continue. If your page sets a Content-Security-Policy, allow the live view's origin (the origin of `live_view_url`) in `frame-src`, or the browser frame is blocked.
 
 ## License
 

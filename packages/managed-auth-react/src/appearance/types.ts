@@ -126,6 +126,7 @@ export interface AppearanceElements {
   /** Human intervention screen. */
   humanInterventionMessage?: ElementValue;
   humanInterventionLiveView?: ElementValue;
+  humanInterventionNote?: ElementValue;
   /** Form wrapper. */
   form?: ElementValue;
   formField?: ElementValue;

@@ -897,6 +897,15 @@
   height: 1.25rem;
 }
 
+.kma-human-intervention__note {
+  margin: 0;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--kma-radius-sm);
+  background: color-mix(in srgb, var(--kma-color-warning) 18%, transparent);
+  color: var(--kma-color-foreground);
+  font-size: var(--kma-font-size);
+}
+
 .kma-human-intervention__frame {
   position: relative;
   width: 100%;

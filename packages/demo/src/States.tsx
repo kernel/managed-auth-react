@@ -81,6 +81,7 @@ type StateName =
   | "awaiting_external_action"
   | "awaiting_external_action_multi"
   | "awaiting_human_intervention"
+  | "awaiting_human_intervention_again"
   | "submitting"
   | "success"
   | "expired"
@@ -96,6 +97,7 @@ const allStates: StateName[] = [
   "awaiting_external_action",
   "awaiting_external_action_multi",
   "awaiting_human_intervention",
+  "awaiting_human_intervention_again",
   "submitting",
   "success",
   "expired",
@@ -207,6 +209,16 @@ export function States() {
             liveViewUrl={null}
             onDone={handleSubmit}
             isLoading={isLoading}
+          />
+        );
+      case "awaiting_human_intervention_again":
+        return (
+          <HumanInterventionStep
+            targetDomain={TARGET_DOMAIN}
+            liveViewUrl={null}
+            onDone={handleSubmit}
+            isLoading={isLoading}
+            note="The site is asking for a security check again. Complete it in the browser below, then continue."
           />
         );
       case "submitting":

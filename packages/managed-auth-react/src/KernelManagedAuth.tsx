@@ -131,6 +131,10 @@ function KernelManagedAuthInner({
         onDone={completeHumanIntervention}
         isLoading={isSubmitting}
         errorMessage={submitError ?? undefined}
+        note={
+          state?.choices?.find((choice) => choice.type === "human_intervention")
+            ?.description
+        }
       />
     );
   }

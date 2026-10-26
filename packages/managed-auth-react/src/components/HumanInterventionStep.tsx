@@ -26,6 +26,8 @@ interface HumanInterventionStepProps {
   onDone: () => void;
   isLoading?: boolean;
   errorMessage?: string;
+  /** Shown when the site asks for a check again after the person continued. */
+  note?: string | null;
 }
 
 export function HumanInterventionStep({
@@ -34,6 +36,7 @@ export function HumanInterventionStep({
   onDone,
   isLoading,
   errorMessage,
+  note,
 }: HumanInterventionStepProps) {
   const slot = useSlot();
   const l = useLocalization();
@@ -73,6 +76,14 @@ export function HumanInterventionStep({
         </div>
       </div>
 
+      {note && (
+        <p
+          {...slot("humanInterventionNote", "kma-human-intervention__note")}
+          role="status"
+        >
+          {note}
+        </p>
+      )}
       {errorMessage && <ErrorBanner message={errorMessage} />}
 
       <div

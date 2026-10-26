@@ -911,7 +911,8 @@
   width: 100%;
   /* The live view streams the whole 1920x1080 display. */
   aspect-ratio: 16 / 9;
-  border: 1px solid var(--kma-color-border);
+  /* A border would shrink the 16:9 box and pillarbox the stream. */
+  box-shadow: 0 0 0 1px var(--kma-color-border);
   border-radius: var(--kma-radius);
   background: var(--kma-color-muted);
   overflow: hidden;

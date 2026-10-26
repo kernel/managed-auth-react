@@ -218,7 +218,7 @@ export function States() {
             liveViewUrl={null}
             onDone={handleSubmit}
             isLoading={isLoading}
-            note="The site is asking for a security check again. Complete it in the browser below, then continue."
+            note="kernel.sh is asking to verify again."
           />
         );
       case "submitting":

@@ -48,7 +48,7 @@ describe("HumanInterventionStep", () => {
   });
 
   test("shows the note when the site asks again", () => {
-    const note = "The site is asking for a security check again.";
+    const note = "example.com is asking to verify again.";
     expect(statusText(render(note))).toEqual([note]);
   });
 

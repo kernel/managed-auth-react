@@ -27,7 +27,7 @@ const humanInterventionState: ManagedAuthResponse = {
     {
       id: "human_intervention_done",
       type: "human_intervention",
-      label: "I've completed the security check",
+      label: "I've completed the verification",
     },
   ],
 };

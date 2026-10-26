@@ -114,6 +114,10 @@ export function HumanInterventionStep({
         )}
       </div>
 
+      <p className="kma-human-intervention__hint">
+        {l.humanInterventionReassurance}
+      </p>
+
       <Button onClick={onDone} disabled={isLoading}>
         {l.humanInterventionDone}
       </Button>

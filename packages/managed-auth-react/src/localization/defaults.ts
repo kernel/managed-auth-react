@@ -75,10 +75,12 @@ export const DEFAULT_LOCALIZATION: Localizer = {
   externalActionTitle: "Action Required",
   externalActionFallbackMessage: "Complete the verification on your device",
   externalActionWaiting: "Waiting for your confirmation...",
-  humanInterventionTitle: "Complete the security check",
+  humanInterventionTitle: "Human verification required",
   humanInterventionMessage: (site) =>
-    `${site} is asking to confirm you're human. Complete the check in the browser below, then continue.`,
-  humanInterventionDone: "I've completed the check",
+    `${site} needs to confirm a person is signing in. Complete the check below, then continue.`,
+  humanInterventionReassurance:
+    "Only complete the check. We'll continue signing you in after.",
+  humanInterventionDone: "Continue",
   humanInterventionLiveViewTitle: "Login browser",
   humanInterventionLiveViewUnavailable:
     "The login browser isn't available right now.",

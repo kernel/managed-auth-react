@@ -66,6 +66,7 @@ export interface Localization {
   /** Human intervention (CAPTCHA the browser could not solve). */
   humanInterventionTitle?: string;
   humanInterventionMessage?: (site: string) => string;
+  humanInterventionReassurance?: string;
   humanInterventionDone?: string;
   humanInterventionLiveViewTitle?: string;
   humanInterventionLiveViewUnavailable?: string;

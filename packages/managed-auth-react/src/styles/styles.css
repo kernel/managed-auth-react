@@ -865,7 +865,7 @@
 
 /* ---------- Human intervention ---------- */
 
-/* The login browser renders at 1280x800, so the card widens to keep it legible. */
+/* The live view shows the login browser at 1920x1080, so the card widens to keep it legible. */
 .kma-shell:has(.kma-human-intervention) {
   max-width: 64rem;
 }
@@ -909,7 +909,8 @@
 .kma-human-intervention__frame {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  /* The live view streams the whole 1920x1080 display. */
+  aspect-ratio: 16 / 9;
   border: 1px solid var(--kma-color-border);
   border-radius: var(--kma-radius);
   background: var(--kma-color-muted);
@@ -936,6 +937,13 @@
   justify-content: center;
   gap: 0.75rem;
   background: color-mix(in srgb, var(--kma-color-background) 90%, transparent);
+}
+
+.kma-human-intervention__hint {
+  margin: 0;
+  font-size: var(--kma-font-size-sm);
+  color: var(--kma-color-muted-foreground);
+  text-align: center;
 }
 
 .kma-human-intervention__notice {

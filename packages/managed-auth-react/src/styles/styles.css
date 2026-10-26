@@ -865,7 +865,7 @@
 
 /* ---------- Human intervention ---------- */
 
-/* The live view shows the login browser at 1920x1080, so the card widens to keep it legible. */
+/* The card widens so the 1920x1080 live view stays legible. */
 .kma-shell:has(.kma-human-intervention) {
   max-width: 64rem;
 }

@@ -77,9 +77,7 @@ export const DEFAULT_LOCALIZATION: Localizer = {
   externalActionWaiting: "Waiting for your confirmation...",
   humanInterventionTitle: "Human verification required",
   humanInterventionMessage: (site) =>
-    `${site} needs to confirm a person is signing in. Complete the check below, then continue.`,
-  humanInterventionReassurance:
-    "Only complete the check. We'll continue signing you in after.",
+    `Complete the check in ${site} above, then continue. We'll continue signing you in after.`,
   humanInterventionDone: "Continue",
   humanInterventionLiveViewTitle: "Login browser",
   humanInterventionLiveViewUnavailable:

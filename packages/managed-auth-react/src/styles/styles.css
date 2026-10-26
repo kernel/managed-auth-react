@@ -874,27 +874,9 @@
   gap: 1rem;
 }
 
+/* The live view needs clear separation from the heading above it. */
 .kma-human-intervention__header {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
-
-.kma-human-intervention__icon {
-  flex: none;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 9999px;
-  background: color-mix(in srgb, var(--kma-color-primary) 15%, transparent);
-  color: var(--kma-color-primary-bright, var(--kma-color-primary));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.kma-human-intervention__icon svg {
-  width: 1.25rem;
-  height: 1.25rem;
+  margin-bottom: 8px;
 }
 
 .kma-human-intervention__note {
@@ -904,6 +886,7 @@
   background: color-mix(in srgb, var(--kma-color-warning) 18%, transparent);
   color: var(--kma-color-foreground);
   font-size: var(--kma-font-size);
+  text-align: center;
 }
 
 .kma-human-intervention__frame {

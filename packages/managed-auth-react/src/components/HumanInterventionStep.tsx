@@ -3,7 +3,6 @@ import { useSlot } from "../appearance/context";
 import { useLocalization } from "../localization/context";
 import { Button } from "./primitives/Button";
 import { ErrorBanner } from "./ErrorBanner";
-import { ShieldCheckIcon } from "./icons";
 
 // The live view posts one of these when its connection never succeeds.
 const LIVE_VIEW_CONNECT_FAILURES = new Set([
@@ -64,16 +63,8 @@ export function HumanInterventionStep({
 
   return (
     <div className="kma-step kma-human-intervention">
-      <div className="kma-human-intervention__header">
-        <span className="kma-human-intervention__icon" aria-hidden="true">
-          <ShieldCheckIcon />
-        </span>
-        <div>
-          <h2 className="kma-title">{l.humanInterventionTitle}</h2>
-          <p {...slot("humanInterventionMessage", "kma-subtitle")}>
-            {l.humanInterventionMessage(targetDomain)}
-          </p>
-        </div>
+      <div className="kma-step__header kma-human-intervention__header">
+        <h1 {...slot("title", "kma-title")}>{l.humanInterventionTitle}</h1>
       </div>
 
       {note && (
@@ -114,8 +105,8 @@ export function HumanInterventionStep({
         )}
       </div>
 
-      <p className="kma-human-intervention__hint">
-        {l.humanInterventionReassurance}
+      <p {...slot("humanInterventionMessage", "kma-human-intervention__hint")}>
+        {l.humanInterventionMessage(targetDomain)}
       </p>
 
       <Button onClick={onDone} disabled={isLoading}>

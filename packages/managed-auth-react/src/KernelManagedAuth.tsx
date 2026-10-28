@@ -117,7 +117,7 @@ function KernelManagedAuthInner({
         targetDomain={targetDomain}
         liveViewUrl={state?.live_view_url}
         onDone={() => submitSignIn(humanIntervention.id)}
-        isLoading={isSubmitting}
+        isLoading={isSubmitting || uiState === "submitting"}
         errorMessage={submitError ?? undefined}
         note={humanIntervention.description}
       />

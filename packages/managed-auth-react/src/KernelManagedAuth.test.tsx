@@ -59,3 +59,72 @@ describe("KernelManagedAuth initialization", () => {
     expect(renderer!.root.findAllByType("button")).toHaveLength(0);
   });
 });
+
+describe("KernelManagedAuth human verification", () => {
+  const hadWindow = "window" in globalThis;
+  // Unmount first: the live view removes its window listener on the way out.
+  afterEach(() => {
+    act(() => renderer?.unmount());
+    renderer = null;
+    if (!hadWindow) delete (globalThis as { window?: unknown }).window;
+  });
+
+  test("keeps Continue disabled after the submit is accepted, until the flow moves on", async () => {
+    if (!hadWindow) {
+      Object.assign(globalThis, {
+        window: { addEventListener() {}, removeEventListener() {} },
+      });
+    }
+    const json = (body: unknown) =>
+      new Response(JSON.stringify(body), {
+        headers: { "Content-Type": "application/json" },
+      });
+    const fetchImpl = (async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/exchange")) return json({ jwt: "jwt" });
+      if (url.endsWith("/events")) return new Promise<Response>(() => {});
+      if (url.endsWith("/submit")) return json({});
+      return json({
+        id: "session-id",
+        domain: "example.com",
+        profile_name: "profile",
+        flow_status: "IN_PROGRESS",
+        flow_step: "AWAITING_HUMAN_INTERVENTION",
+        interaction_id: "mai_captcha",
+        live_view_url: "https://live.example.com/browser/live/abc",
+        fields: [],
+        choices: [
+          {
+            id: "human_intervention_done",
+            type: "human_intervention",
+            label: "I've completed the verification",
+          },
+        ],
+      });
+    }) as typeof fetch;
+
+    await act(async () => {
+      renderer = create(
+        createElement(KernelManagedAuth, {
+          sessionId: "session-id",
+          handoffCode: "handoff-code",
+          fetch: fetchImpl,
+          appearance: { layout: { skipPrimeStep: true } },
+        }),
+      );
+      for (let i = 0; i < 5; i++) await Promise.resolve();
+    });
+    const continueButton = () =>
+      renderer!.root.findAll(
+        (node) => node.type === "button" && node.children.includes("Continue"),
+      )[0]!;
+    expect(continueButton().props.disabled).toBe(false);
+
+    await act(async () => {
+      continueButton().props.onClick();
+      for (let i = 0; i < 5; i++) await Promise.resolve();
+    });
+
+    expect(continueButton().props.disabled).toBe(true);
+  });
+});

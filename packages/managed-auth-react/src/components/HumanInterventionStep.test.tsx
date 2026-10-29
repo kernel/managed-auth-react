@@ -5,25 +5,30 @@ import { AppearanceProvider } from "../appearance/context";
 import { LocalizationProvider } from "../localization/context";
 import { HumanInterventionStep } from "./HumanInterventionStep";
 
+const LIVE_VIEW = "https://live.example.com/browser/live/abc";
+let listener: ((event: MessageEvent) => void) | undefined;
+
+function step(note?: string, liveViewUrl = LIVE_VIEW) {
+  return createElement(
+    AppearanceProvider,
+    null,
+    createElement(
+      LocalizationProvider,
+      null,
+      createElement(HumanInterventionStep, {
+        targetDomain: "example.com",
+        liveViewUrl,
+        onDone: () => {},
+        note,
+      }),
+    ),
+  );
+}
+
 function render(note?: string) {
   let renderer!: ReturnType<typeof create>;
   act(() => {
-    renderer = create(
-      createElement(
-        AppearanceProvider,
-        null,
-        createElement(
-          LocalizationProvider,
-          null,
-          createElement(HumanInterventionStep, {
-            targetDomain: "example.com",
-            liveViewUrl: "https://live.example.com/browser/live/abc",
-            onDone: () => {},
-            note,
-          }),
-        ),
-      ),
-    );
+    renderer = create(step(note));
   });
   return renderer;
 }
@@ -39,7 +44,14 @@ describe("HumanInterventionStep", () => {
   beforeAll(() => {
     if (!hadWindow) {
       Object.assign(globalThis, {
-        window: { addEventListener() {}, removeEventListener() {} },
+        window: {
+          addEventListener: (_: string, fn: (event: MessageEvent) => void) => {
+            listener = fn;
+          },
+          removeEventListener: () => {
+            listener = undefined;
+          },
+        },
       });
     }
   });
@@ -54,5 +66,25 @@ describe("HumanInterventionStep", () => {
 
   test("shows no note on the first pause", () => {
     expect(statusText(render())).toEqual([]);
+  });
+
+  test("starts the live view fresh when its url changes", () => {
+    const renderer = render();
+    act(() =>
+      listener?.({
+        origin: "https://live.example.com",
+        data: { type: "KERNEL_CONNECTION_FAILED", reason: "unsupported" },
+      } as MessageEvent),
+    );
+    const alerts = () =>
+      renderer.root.findAll((node) => node.props.role === "alert");
+    expect(alerts()).toHaveLength(1);
+
+    const next = "https://live.example.com/browser/live/def";
+    act(() => renderer.update(step(undefined, next)));
+
+    expect(alerts()).toHaveLength(0);
+    expect(renderer.root.findByType("iframe" as never).props.src).toBe(next);
+    act(() => renderer.unmount());
   });
 });

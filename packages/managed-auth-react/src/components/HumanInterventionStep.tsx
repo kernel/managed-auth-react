@@ -42,7 +42,7 @@ export function HumanInterventionStep({
       )}
       {errorMessage && <ErrorBanner message={errorMessage} />}
 
-      <LiveViewFrame url={liveViewUrl} />
+      <LiveViewFrame key={liveViewUrl ?? ""} url={liveViewUrl} />
 
       <p {...slot("humanInterventionMessage", "kma-human-intervention__hint")}>
         {l.humanInterventionMessage(extractDomainName(targetDomain))}

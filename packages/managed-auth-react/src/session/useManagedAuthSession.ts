@@ -278,6 +278,13 @@ export function useManagedAuthSession(
         exchangeRef.current?.active === true;
 
       const transport = transportRef.current;
+      // A failed submit returns to whatever screen the session is on.
+      const leaveSubmitting = () =>
+        setUIState((current) =>
+          current === "submitting" && stateRef.current
+            ? deriveUIState(stateRef.current)
+            : current,
+        );
       transport?.beginSubmission();
       setIsSubmitting(true);
       setSubmitError(null);
@@ -294,20 +301,11 @@ export function useManagedAuthSession(
           await transport?.resync();
           if (!isActive()) return;
           setSubmitError(msg);
-          setUIState((current) =>
-            current === "submitting" && stateRef.current
-              ? deriveUIState(stateRef.current)
-              : current,
-          );
+          leaveSubmitting();
           return;
         }
         setSubmitError(msg);
-        setUIState((current) => {
-          if (isTerminal(current)) return current;
-          return stateRef.current
-            ? deriveUIState(stateRef.current)
-            : "awaiting_input";
-        });
+        leaveSubmitting();
       } finally {
         if (isActive()) {
           transport?.endSubmission();

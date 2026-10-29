@@ -48,7 +48,7 @@ describe("StepError description", () => {
   const timeout =
     "A CAPTCHA blocked the login. A person was asked to complete it but didn't finish in time. Please try again.";
 
-  test("shows how a captcha_blocked flow ended instead of a fixed description", () => {
+  function paragraphs(errorMessage?: string) {
     const hadWindow = "window" in globalThis;
     if (!hadWindow) {
       Object.assign(globalThis, {
@@ -62,19 +62,32 @@ describe("StepError description", () => {
         createElement(StepError, {
           targetDomain: "example.com",
           errorCode: "captcha_blocked",
-          errorMessage: timeout,
+          errorMessage,
         }),
       );
     });
     const texts = renderer.root
       .findAll((node) => node.type === "p")
       .map((node) => node.children.join(""));
-    expect(texts).toContain(timeout);
-    expect(renderer.root.findAll((node) => node.type === "button")).toEqual([]);
+    const buttonCount = renderer.root.findAll(
+      (node) => node.type === "button",
+    ).length;
     act(() => renderer.unmount());
     if (!hadWindow) {
       delete (globalThis as { window?: unknown }).window;
       delete (globalThis as { document?: unknown }).document;
     }
+    return { texts, buttonCount };
+  }
+
+  test("shows how a captcha_blocked flow ended instead of a fixed description", () => {
+    const { texts, buttonCount } = paragraphs(timeout);
+    expect(texts).toContain(timeout);
+    expect(buttonCount).toBe(0);
+  });
+
+  test("falls back to the captcha description when the server sends no message", () => {
+    const { texts } = paragraphs();
+    expect(texts).toContain("A CAPTCHA blocked the login.");
   });
 });

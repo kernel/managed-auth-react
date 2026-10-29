@@ -11,9 +11,12 @@ interface StepErrorProps {
   errorCode?: string;
 }
 
-// Without a description, the screen shows the server's error_message, which
-// says how the flow ended (e.g. a person was asked and didn't finish in time).
-const ERROR_DISPLAY: Record<string, { title: string; description?: string }> = {
+// preferServerMessage shows the server's error_message when there is one, since
+// it says how the flow ended (e.g. a person was asked and didn't finish in time).
+const ERROR_DISPLAY: Record<
+  string,
+  { title: string; description: string; preferServerMessage?: boolean }
+> = {
   domain_not_allowed: {
     title: "Domain not allowed",
     description:
@@ -67,6 +70,8 @@ const ERROR_DISPLAY: Record<string, { title: string; description?: string }> = {
   },
   captcha_blocked: {
     title: "Verification required",
+    description: "A CAPTCHA blocked the login.",
+    preferServerMessage: true,
   },
   stuck_in_loop: {
     title: "Login couldn't complete",
@@ -135,8 +140,8 @@ export function StepError({
     ? extractErrorText(errorMessage)
     : undefined;
   const description =
+    (display?.preferServerMessage ? rawDetails : undefined) ??
     display?.description ??
-    (display ? rawDetails : undefined) ??
     l.errorGenericMessage;
   const hasDetails = rawDetails && rawDetails !== description;
 

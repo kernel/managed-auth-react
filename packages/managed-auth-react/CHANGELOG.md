@@ -1,5 +1,11 @@
 # @onkernel/managed-auth-react
 
+## 0.6.0
+
+### Minor Changes
+
+- [#40](https://github.com/kernel/managed-auth-react/pull/40) [`5e32de9`](https://github.com/kernel/managed-auth-react/commit/5e32de9564bb5b6e4291d515dbf4bc558a7f2776) Thanks [@akxue](https://github.com/akxue)! - Add the `AWAITING_HUMAN_INTERVENTION` step. When a connection has `hitl` enabled and the login hits a CAPTCHA the browser cannot solve, the component embeds the login browser's live view so the person can complete it, then resumes the login when they confirm. If the site asks for another check after the person continues, the screen shows a short note. Sites that restrict embedded content with a Content-Security-Policy need to allow the live view origin in `frame-src`. The `captcha_blocked` error screen now shows the API's `error_message`, which says whether a person was asked to verify and didn't finish in time.
+
 ## 0.5.5
 
 ### Patch Changes

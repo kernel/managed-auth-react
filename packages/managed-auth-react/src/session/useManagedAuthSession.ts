@@ -37,6 +37,8 @@ function deriveUIState(state: ManagedAuthResponse): UIState {
       return "awaiting_input";
     case "AWAITING_EXTERNAL_ACTION":
       return "awaiting_external_action";
+    case "AWAITING_HUMAN_INTERVENTION":
+      return "awaiting_human_intervention";
     case "SUBMITTING":
       return "submitting";
     default:
@@ -276,6 +278,13 @@ export function useManagedAuthSession(
         exchangeRef.current?.active === true;
 
       const transport = transportRef.current;
+      // A failed submit returns to whatever screen the session is on.
+      const leaveSubmitting = () =>
+        setUIState((current) =>
+          current === "submitting" && stateRef.current
+            ? deriveUIState(stateRef.current)
+            : current,
+        );
       transport?.beginSubmission();
       setIsSubmitting(true);
       setSubmitError(null);
@@ -292,17 +301,11 @@ export function useManagedAuthSession(
           await transport?.resync();
           if (!isActive()) return;
           setSubmitError(msg);
-          setUIState((current) =>
-            current === "submitting" && stateRef.current
-              ? deriveUIState(stateRef.current)
-              : current,
-          );
+          leaveSubmitting();
           return;
         }
         setSubmitError(msg);
-        setUIState((current) =>
-          isTerminal(current) ? current : "awaiting_input",
-        );
+        leaveSubmitting();
       } finally {
         if (isActive()) {
           transport?.endSubmission();

@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { errorDisplayForCode } from "./StepError";
+import { createElement } from "react";
+import { act, create } from "react-test-renderer";
+import { errorDisplayForCode, StepError } from "./StepError";
 
 describe("errorDisplayForCode", () => {
   test("renders typed challenge outcomes with context-neutral copy", () => {
@@ -15,7 +17,7 @@ describe("errorDisplayForCode", () => {
     for (const [code, title] of cases) {
       const display = errorDisplayForCode(code);
       expect(display?.title).toBe(title);
-      expect(display?.description.toLowerCase()).not.toContain("reauth");
+      expect(display?.description?.toLowerCase()).not.toContain("reauth");
     }
   });
 
@@ -39,5 +41,53 @@ describe("errorDisplayForCode", () => {
     expect(display?.description).toContain("Try a fresh code");
     expect(invalidCredentials).toBeTruthy();
     expect(display).not.toEqual(invalidCredentials);
+  });
+});
+
+describe("StepError description", () => {
+  const timeout =
+    "A CAPTCHA blocked the login. A person was asked to complete it but didn't finish in time. Please try again.";
+
+  function paragraphs(errorMessage?: string) {
+    const hadWindow = "window" in globalThis;
+    if (!hadWindow) {
+      Object.assign(globalThis, {
+        window: { addEventListener() {}, removeEventListener() {} },
+        document: { readyState: "loading" },
+      });
+    }
+    let renderer!: ReturnType<typeof create>;
+    act(() => {
+      renderer = create(
+        createElement(StepError, {
+          targetDomain: "example.com",
+          errorCode: "captcha_blocked",
+          errorMessage,
+        }),
+      );
+    });
+    const texts = renderer.root
+      .findAll((node) => node.type === "p")
+      .map((node) => node.children.join(""));
+    const buttonCount = renderer.root.findAll(
+      (node) => node.type === "button",
+    ).length;
+    act(() => renderer.unmount());
+    if (!hadWindow) {
+      delete (globalThis as { window?: unknown }).window;
+      delete (globalThis as { document?: unknown }).document;
+    }
+    return { texts, buttonCount };
+  }
+
+  test("shows how a captcha_blocked flow ended instead of a fixed description", () => {
+    const { texts, buttonCount } = paragraphs(timeout);
+    expect(texts).toContain(timeout);
+    expect(buttonCount).toBe(0);
+  });
+
+  test("falls back to the captcha description when the server sends no message", () => {
+    const { texts } = paragraphs();
+    expect(texts).toContain("A CAPTCHA blocked the login.");
   });
 });

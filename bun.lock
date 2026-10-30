@@ -7,7 +7,7 @@
       "devDependencies": {
         "@changesets/changelog-github": "0.7.0",
         "@changesets/cli": "^2.27.0",
-        "@onkernel/sdk": "0.93.0",
+        "@onkernel/sdk": "0.138.0",
         "@types/bun": "1.2.21",
         "@types/node": "^20",
         "@types/react-test-renderer": "18.3.1",
@@ -34,7 +34,7 @@
     },
     "packages/managed-auth-react": {
       "name": "@onkernel/managed-auth-react",
-      "version": "0.2.0",
+      "version": "0.5.5",
       "dependencies": {
         "clsx": "^2.1.1",
         "tldts": "7.4.15",
@@ -210,7 +210,7 @@
 
     "@onkernel/managed-auth-react-demo": ["@onkernel/managed-auth-react-demo@workspace:packages/demo"],
 
-    "@onkernel/sdk": ["@onkernel/sdk@0.93.0", "", {}, "sha512-Hb28fq/XGoDbJGOZXHX7MPdFbBs9OtVER44Xo1p6VT4123xpQMVHCGdR4AdW2KuEEwJpXd1yxuTn0GPvUG8dXw=="],
+    "@onkernel/sdk": ["@onkernel/sdk@0.138.0", "", {}, "sha512-K1H89zavs6kj7E8tIsG46UqKKwEeJ1bD0XAj4c/yFl2zMx6MB1k31uy9rhIddwTmV6qe+P0E43am8TpqUsjkDA=="],
 
     "@rolldown/pluginutils": ["@rolldown/pluginutils@1.0.0-beta.27", "", {}, "sha512-+d0F4MKMCbeVUJwG96uQ4SgAznZNSq93I3V+9NHA4OpvqG8mRCpGdKmK8l/dl02h2CCDHwW2FqilnTyDcAnqjA=="],
 

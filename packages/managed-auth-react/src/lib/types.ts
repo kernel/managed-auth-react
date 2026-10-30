@@ -1,5 +1,5 @@
 // Protocol types for Kernel managed auth.
-// Synchronized with @onkernel/sdk v0.93.0 and vendored to keep this package runtime-free.
+// Synchronized with @onkernel/sdk v0.138.0 and vendored to keep this package runtime-free.
 
 export type FlowStatus =
   | "PENDING"
@@ -13,6 +13,7 @@ export type FlowStep =
   | "DISCOVERING"
   | "AWAITING_INPUT"
   | "AWAITING_EXTERNAL_ACTION"
+  | "AWAITING_HUMAN_INTERVENTION"
   | "SUBMITTING"
   | "COMPLETED";
 
@@ -90,6 +91,7 @@ export type ManagedAuthChoiceType =
   | "auth_method"
   | "identifier_method"
   | "account"
+  | "human_intervention"
   | "other";
 
 export interface ManagedAuthChoice {
@@ -155,6 +157,7 @@ export type UIState =
   | "discovering"
   | "awaiting_input"
   | "awaiting_external_action"
+  | "awaiting_human_intervention"
   | "submitting"
   | "success"
   | "expired"

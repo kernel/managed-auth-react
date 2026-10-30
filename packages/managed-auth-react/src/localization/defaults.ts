@@ -75,4 +75,17 @@ export const DEFAULT_LOCALIZATION: Localizer = {
   externalActionTitle: "Action Required",
   externalActionFallbackMessage: "Complete the verification on your device",
   externalActionWaiting: "Waiting for your confirmation...",
+  humanInterventionTitle: "Human verification required",
+  humanInterventionMessage: (site) =>
+    `Complete the check in ${site} above, then continue. We'll continue signing you in after.`,
+  humanInterventionDone: "Continue",
+  humanInterventionLiveViewTitle: "Login browser",
+  humanInterventionLiveViewUnavailable:
+    "The login browser isn't available right now.",
+  humanInterventionLiveViewFailed: "Couldn't connect to the login browser.",
+  humanInterventionLiveViewGaveUp:
+    "Couldn't connect to the login browser. Reload this page to try again.",
+  humanInterventionLiveViewUnsupported:
+    "Your browser can't show the login browser. Try a different browser.",
+  humanInterventionRetry: "Try again",
 };

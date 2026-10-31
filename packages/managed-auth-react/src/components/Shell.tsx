@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import clsx from "clsx";
 import { useSlot } from "../appearance/context";
+import { useLocalization } from "../localization/context";
 import { variablesToStyle } from "../appearance/variables";
 import type { Appearance, ColorScheme } from "../appearance/types";
 import { KernelLogo } from "./KernelLogo";
@@ -18,6 +19,7 @@ function themeClass(theme: ColorScheme | undefined): string {
 
 export function Shell({ appearance, children }: ShellProps) {
   const slot = useSlot();
+  const l = useLocalization();
   const root = slot("root", clsx("kma-root", themeClass(appearance?.theme)));
   const shell = slot("shell", "kma-shell");
   const card = slot("card", "kma-card");
@@ -37,7 +39,7 @@ export function Shell({ appearance, children }: ShellProps) {
         <div {...card}>{children}</div>
         {showPoweredBy && (
           <div {...poweredBy}>
-            <span className="kma-powered-by__prefix">Powered by</span>
+            <span className="kma-powered-by__prefix">{l.poweredBy}</span>
             <a
               {...poweredByLink}
               href="https://kernel.sh"

@@ -69,6 +69,92 @@ export const DEFAULT_LOCALIZATION: Localizer = {
   errorShowDetails: "Show details",
   errorHideDetails: "Hide details",
   errorCloseHint: "You can now close this window",
+  errorCodeMessages: {
+    domain_not_allowed: {
+      title: "Domain not allowed",
+      description:
+        "The login flow redirected to a domain that isn't configured. Update the allowed_domains setting to include it.",
+    },
+    login_form_not_found: {
+      title: "Login form not found",
+      description:
+        "We couldn't find a login form on this page. The website may have changed its layout, or the login URL might be incorrect.",
+    },
+    credentials_invalid: {
+      title: "Invalid credentials",
+      description: "The username or password was not accepted by the website.",
+    },
+    totp_required: {
+      title: "Authenticator code required",
+      description: "An authenticator code is required.",
+    },
+    sms_code_required: {
+      title: "SMS code required",
+      description: "A code sent by SMS is required.",
+    },
+    email_code_required: {
+      title: "Email code required",
+      description: "A code sent by email is required.",
+    },
+    account_choice_required: {
+      title: "Account selection required",
+      description:
+        "An account or identity must be selected before login can continue.",
+    },
+    customer_input_required: {
+      title: "Additional input required",
+      description:
+        "Additional information is required before login can continue.",
+    },
+    external_action_required: {
+      title: "External action required",
+      description:
+        "An external action is required to continue. Check your authenticator app, email, or phone for a verification request.",
+    },
+    totp_code_rejected: {
+      title: "Authenticator code rejected",
+      description:
+        "The website rejected the authenticator code. Try a fresh code, or reconnect the account if generated codes keep failing across new code windows.",
+    },
+    bot_detected: {
+      title: "Verification required",
+      description:
+        "This website detected automated access and blocked the login.",
+    },
+    captcha_blocked: {
+      title: "Verification required",
+      description: "A CAPTCHA blocked the login.",
+    },
+    stuck_in_loop: {
+      title: "Login couldn't complete",
+      description:
+        "We got stuck trying to complete the login. This can happen with unusual login flows.",
+    },
+    max_attempts_reached: {
+      title: "Login couldn't complete",
+      description:
+        "We weren't able to complete the login after several attempts.",
+    },
+    website_error: {
+      title: "Website error",
+      description:
+        "The website returned an error during login. The site may be experiencing issues.",
+    },
+    navigation_confused: {
+      title: "Login couldn't complete",
+      description:
+        "We got confused navigating this website. This sometimes happens with complex login flows.",
+    },
+    browser_error: {
+      title: "Browser error",
+      description: "There was an issue with the browser. Please try again.",
+    },
+    session_expired: {
+      title: "Session expired",
+      description:
+        "The login session has expired. Please start a new login flow.",
+    },
+  },
   expiredTitle: "Session Expired",
   expiredDescription:
     "This authentication session has expired. Please start a new session.",
@@ -88,4 +174,5 @@ export const DEFAULT_LOCALIZATION: Localizer = {
   humanInterventionLiveViewUnsupported:
     "Your browser can't show the login browser. Try a different browser.",
   humanInterventionRetry: "Try again",
+  poweredBy: "Powered by",
 };

@@ -41,17 +41,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.4.0
         with:
           fetch-depth: 0
 
       - name: Set up Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@v2.2.0
         with:
           bun-version: "1.2.21"
 
       - name: Set up Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v5.0.0
         with:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'
@@ -71,7 +71,7 @@ jobs:
         run: cp LICENSE packages/managed-auth-react/LICENSE
 
       - name: Create release PR or publish
-        uses: changesets/action@v1
+        uses: changesets/action@v1.9.0
         with:
           publish: bunx changeset publish
           title: "chore: version packages"

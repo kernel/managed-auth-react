@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { createElement } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { KernelManagedAuth } from "./KernelManagedAuth";
+import { LOCALIZATIONS } from "./localization/locales";
 
 let renderer: ReactTestRenderer | null = null;
 
@@ -126,5 +127,25 @@ describe("KernelManagedAuth human verification", () => {
     });
 
     expect(continueButton().props.disabled).toBe(true);
+  });
+});
+
+describe("KernelManagedAuth localization", () => {
+  test("renders the step and footer in the given localization", () => {
+    act(() => {
+      renderer = create(
+        createElement(KernelManagedAuth, {
+          sessionId: "session-id",
+          handoffCode: "handoff-code",
+          fetch: pendingExchangeFetch(),
+          localization: LOCALIZATIONS.sv,
+        }),
+      );
+    });
+
+    const output = JSON.stringify(renderer!.toJSON());
+    expect(output).toContain("Förbereder säker inloggning");
+    expect(output).toContain("Drivs av");
+    expect(output).not.toContain("Powered by");
   });
 });

@@ -216,7 +216,23 @@ Supported keys: `:hover`, `:focus`, `:focus-visible`, `:active`, `:disabled`, `:
 
 ## Localization
 
-Pass a partial map; everything else falls back to English.
+The package ships complete localizations for English (`en`), Danish (`da`), German (`de`), Spanish (`es`), Finnish (`fi`), French (`fr`), Italian (`it`), Norwegian Bokmål (`nb`), Dutch (`nl`), Polish (`pl`), and Swedish (`sv`). `matchLocale` takes language tags in order of preference, such as `navigator.languages`, and returns the first one with a built-in localization:
+
+```tsx
+import {
+  KernelManagedAuth,
+  LOCALIZATIONS,
+  matchLocale,
+} from "@onkernel/managed-auth-react";
+
+const locale = matchLocale(navigator.languages) ?? "en";
+
+<KernelManagedAuth localization={LOCALIZATIONS[locale]} {...rest} />;
+```
+
+Text that comes from the website being signed into, such as field labels and options, is shown as the website provides it.
+
+To write your own strings, pass a partial map; everything else falls back to English.
 
 ```tsx
 <KernelManagedAuth
@@ -241,7 +257,7 @@ See [`Localization`](./src/localization/types.ts) for every supported key.
 | `sessionId`    | `string`                          | yes      | —                            | Managed auth connection ID from your backend.                                            |
 | `handoffCode`  | `string`                          | yes      | —                            | Single-use handoff code, exchanged for a JWT.                                            |
 | `appearance`   | `Appearance`                      | no       | —                            | Styling — variables, elements, layout, theme.                                            |
-| `localization` | `Localization`                    | no       | English                      | Partial string overrides.                                                                |
+| `localization` | `Localization`                    | no       | English                      | Strings: a built-in `LOCALIZATIONS[locale]` or partial overrides.                        |
 | `onSuccess`    | `(p: AuthSuccessPayload) => void` | no       | —                            | Fires on `SUCCESS`. Payload: `{ profileName: string; domain: string }`.                  |
 | `onError`      | `(p: AuthErrorPayload) => void`   | no       | —                            | Fires on `FAILED`, `CANCELED`, `EXPIRED`. Payload: `{ code?: string; message: string }`. |
 | `baseUrl`      | `string`                          | no       | `"https://api.onkernel.com"` | Override the Kernel API origin. Use `""` for same-origin proxying via your own rewrites. |

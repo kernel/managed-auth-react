@@ -22,6 +22,10 @@ export function LocalizationProvider({
         ...DEFAULT_LOCALIZATION.mfaTypeLabels,
         ...(localization.mfaTypeLabels ?? {}),
       },
+      errorCodeMessages: {
+        ...DEFAULT_LOCALIZATION.errorCodeMessages,
+        ...(localization.errorCodeMessages ?? {}),
+      },
     };
   }, [localization]);
   return (

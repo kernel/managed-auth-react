@@ -56,6 +56,8 @@ export interface Localization {
   errorShowDetails?: string;
   errorHideDetails?: string;
   errorCloseHint?: string;
+  /** Title and description per server error code. */
+  errorCodeMessages?: Partial<Record<ErrorCode, ErrorCodeMessage>>;
   /** Expired step. */
   expiredTitle?: string;
   expiredDescription?: string;
@@ -73,6 +75,39 @@ export interface Localization {
   humanInterventionLiveViewGaveUp?: string;
   humanInterventionLiveViewUnsupported?: string;
   humanInterventionRetry?: string;
+  /** Shell footer. */
+  poweredBy?: string;
 }
 
-export type Localizer = Required<Localization>;
+export interface ErrorCodeMessage {
+  title: string;
+  description: string;
+}
+
+/** Server error codes with dedicated copy on the error step. */
+export type ErrorCode =
+  | "domain_not_allowed"
+  | "login_form_not_found"
+  | "credentials_invalid"
+  | "totp_required"
+  | "sms_code_required"
+  | "email_code_required"
+  | "account_choice_required"
+  | "customer_input_required"
+  | "external_action_required"
+  | "totp_code_rejected"
+  | "bot_detected"
+  | "captcha_blocked"
+  | "stuck_in_loop"
+  | "max_attempts_reached"
+  | "website_error"
+  | "navigation_confused"
+  | "browser_error"
+  | "session_expired";
+
+export type Localizer = Required<
+  Omit<Localization, "mfaTypeLabels" | "errorCodeMessages">
+> & {
+  mfaTypeLabels: Record<MFAType, string>;
+  errorCodeMessages: Record<ErrorCode, ErrorCodeMessage>;
+};

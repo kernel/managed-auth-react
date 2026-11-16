@@ -14,8 +14,19 @@ export type {
   KernelLogoColor,
 } from "./appearance/types";
 
-export type { Localization, Localizer } from "./localization";
-export { DEFAULT_LOCALIZATION, LocalizationProvider } from "./localization";
+export type {
+  ErrorCode,
+  ErrorCodeMessage,
+  Localization,
+  Localizer,
+  SupportedLocale,
+} from "./localization";
+export {
+  DEFAULT_LOCALIZATION,
+  LOCALIZATIONS,
+  LocalizationProvider,
+  matchLocale,
+} from "./localization";
 export { AppearanceProvider } from "./appearance/context";
 
 /**

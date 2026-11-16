@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useSlot } from "../appearance/context";
 import { useLocalization } from "../localization/context";
+import type { ErrorCode, Localizer } from "../localization/types";
 import { extractDomainName } from "../lib/profile-name";
 import { SiteIcon } from "./SiteIcon";
 import { ChevronDownIcon, ChevronUpIcon, XCircleIcon } from "./icons";
@@ -11,101 +12,18 @@ interface StepErrorProps {
   errorCode?: string;
 }
 
-// preferServerMessage shows the server's error_message when there is one, since
-// it says how the flow ended (e.g. a person was asked and didn't finish in time).
-const ERROR_DISPLAY: Record<
-  string,
-  { title: string; description: string; preferServerMessage?: boolean }
-> = {
-  domain_not_allowed: {
-    title: "Domain not allowed",
-    description:
-      "The login flow redirected to a domain that isn't configured. Update the allowed_domains setting to include it.",
-  },
-  login_form_not_found: {
-    title: "Login form not found",
-    description:
-      "We couldn't find a login form on this page. The website may have changed its layout, or the login URL might be incorrect.",
-  },
-  credentials_invalid: {
-    title: "Invalid credentials",
-    description: "The username or password was not accepted by the website.",
-  },
-  totp_required: {
-    title: "Authenticator code required",
-    description: "An authenticator code is required.",
-  },
-  sms_code_required: {
-    title: "SMS code required",
-    description: "A code sent by SMS is required.",
-  },
-  email_code_required: {
-    title: "Email code required",
-    description: "A code sent by email is required.",
-  },
-  account_choice_required: {
-    title: "Account selection required",
-    description:
-      "An account or identity must be selected before login can continue.",
-  },
-  customer_input_required: {
-    title: "Additional input required",
-    description:
-      "Additional information is required before login can continue.",
-  },
-  external_action_required: {
-    title: "External action required",
-    description:
-      "An external action is required to continue. Check your authenticator app, email, or phone for a verification request.",
-  },
-  totp_code_rejected: {
-    title: "Authenticator code rejected",
-    description:
-      "The website rejected the authenticator code. Try a fresh code, or reconnect the account if generated codes keep failing across new code windows.",
-  },
-  bot_detected: {
-    title: "Verification required",
-    description:
-      "This website detected automated access and blocked the login.",
-  },
-  captcha_blocked: {
-    title: "Verification required",
-    description: "A CAPTCHA blocked the login.",
-    preferServerMessage: true,
-  },
-  stuck_in_loop: {
-    title: "Login couldn't complete",
-    description:
-      "We got stuck trying to complete the login. This can happen with unusual login flows.",
-  },
-  max_attempts_reached: {
-    title: "Login couldn't complete",
-    description:
-      "We weren't able to complete the login after several attempts.",
-  },
-  website_error: {
-    title: "Website error",
-    description:
-      "The website returned an error during login. The site may be experiencing issues.",
-  },
-  navigation_confused: {
-    title: "Login couldn't complete",
-    description:
-      "We got confused navigating this website. This sometimes happens with complex login flows.",
-  },
-  browser_error: {
-    title: "Browser error",
-    description: "There was an issue with the browser. Please try again.",
-  },
-  session_expired: {
-    title: "Session expired",
-    description:
-      "The login session has expired. Please start a new login flow.",
-  },
-};
+// These codes show the server's error_message when there is one, since it says
+// how the flow ended (e.g. a person was asked and didn't finish in time).
+const PREFER_SERVER_MESSAGE = new Set<string>(["captcha_blocked"]);
 
-export function errorDisplayForCode(errorCode?: string) {
-  return errorCode ? ERROR_DISPLAY[errorCode] : undefined;
+export function errorDisplayForCode(l: Localizer, errorCode?: string) {
+  if (
+    !errorCode ||
+    !Object.prototype.hasOwnProperty.call(l.errorCodeMessages, errorCode)
+  ) {
+    return undefined;
+  }
+  return l.errorCodeMessages[errorCode as ErrorCode];
 }
 
 function extractErrorText(raw: string): string {
@@ -134,13 +52,15 @@ export function StepError({
   const siteName = extractDomainName(targetDomain);
   const [showDetails, setShowDetails] = useState(false);
 
-  const display = errorDisplayForCode(errorCode);
+  const display = errorDisplayForCode(l, errorCode);
+  const preferServerMessage =
+    errorCode !== undefined && PREFER_SERVER_MESSAGE.has(errorCode);
   const title = display?.title ?? l.errorTitle;
   const rawDetails = errorMessage?.trim()
     ? extractErrorText(errorMessage)
     : undefined;
   const description =
-    (display?.preferServerMessage ? rawDetails : undefined) ??
+    (preferServerMessage ? rawDetails : undefined) ??
     display?.description ??
     l.errorGenericMessage;
   const hasDetails = rawDetails && rawDetails !== description;
